@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>本地书签目录</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('local-bookmarks-theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
+<style>
+:root{color-scheme:light;--bg:#f6f8fc;--panel:#fff;--soft:#f8fafc;--line:#e5e7eb;--line2:#dbe3ee;--text:#172033;--sub:#64748b;--muted:#94a3b8;--blue:#2563eb;--blue2:#1d4ed8;--green:#047857;--greenBg:#dcfce7;--amber:#b45309;--amberBg:#fef3c7;--red:#dc2626;--redBg:#fee2e2;--grayBg:#eef2f7;--shadow:0 12px 30px rgba(15,23,42,.07);--r:10px;--r2:14px}
+*{box-sizing:border-box}html{font-size:16px}body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% 0,rgba(37,99,235,.12),transparent 390px),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.55}button,input,select,textarea{font:inherit}button{cursor:pointer}.wrap{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:24px 0 54px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:750}.brand i{width:26px;height:26px;border-radius:8px;background:var(--blue);color:white;display:grid;place-items:center;font-style:normal}.top-actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line2);background:#fff;color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:650;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(15,23,42,.04);transition:.15s}.btn:hover:not(:disabled){border-color:#cbd5e1;transform:translateY(-1px)}.btn:disabled{opacity:.55;cursor:not-allowed}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:var(--blue2)}.btn.danger{color:var(--red)}.btn.ghost{background:transparent;box-shadow:none}.btn.sm{padding:6px 9px;font-size:12px}.btn.link{border:0;background:transparent;box-shadow:none;color:var(--blue);padding:0}.hero{background:rgba(255,255,255,.88);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--r2);padding:22px;margin-bottom:14px}.hero h1{font-size:30px;line-height:1.15;margin:0 0 6px;letter-spacing:-.03em}.hero p{margin:0;color:var(--sub);font-size:13px;max-width:760px}.nav-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.nav-tab{border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:13px 14px;text-align:left;box-shadow:0 6px 16px rgba(15,23,42,.04)}.nav-tab b{display:block;font-size:15px;margin-bottom:2px}.nav-tab span{font-size:12px;color:var(--sub)}.nav-tab.active{border-color:#bfdbfe;background:#eff6ff}.nav-tab.active b{color:var(--blue)}.stats{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.stat{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px;color:var(--sub);font-size:12px}.stat b{color:var(--text);font-size:13px;margin-right:4px}.panel{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--shadow)}.toolbar{padding:14px;margin-bottom:16px}.search{position:relative;margin-bottom:12px}.search span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:15px}.search input{padding-left:36px;font-size:14px}.filters{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1.15fr 1fr;gap:9px}.filter-mini{margin-top:11px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:12px}.view-switch{display:flex;gap:6px}.view-switch .btn.active{background:var(--text);color:#fff;border-color:var(--text)}input,select,textarea{width:100%;border:1px solid var(--line2);background:#fff;border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:13px;font-weight:500;line-height:1.35}textarea{min-height:88px;resize:vertical}input::placeholder,textarea::placeholder{color:#a6b0bf;font-size:12px;font-weight:400}select{color:#334155}input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12)}label{display:block;color:#334155;font-weight:700;font-size:12.5px;margin-bottom:12px}label span{display:block;margin-bottom:5px}.grid{display:grid;gap:18px}.section{background:#fff;border:1px solid var(--line);border-radius:var(--r2);padding:18px;box-shadow:0 8px 24px rgba(15,23,42,.05)}.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:13px;border-bottom:1px solid #eef2f7;padding-bottom:10px}.section-head h2{margin:0;font-size:18px;line-height:1.2}.section-head small{color:var(--sub);font-size:12px}.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px}.card{position:relative;border:1px solid var(--line);border-radius:10px;background:linear-gradient(#fff,#fbfdff);padding:14px;min-height:120px;display:flex;gap:11px}.card:hover{border-color:#c8d6ea;box-shadow:0 8px 20px rgba(15,23,42,.06)}.fav{width:34px;height:34px;border-radius:9px;background:#eff6ff;color:var(--blue);display:grid;place-items:center;font-weight:800;flex:0 0 auto;overflow:hidden}.fav img{width:20px;height:20px}.card-main{min-width:0;flex:1}.card-title{display:flex;align-items:center;gap:8px;margin:0 0 4px;font-size:15px;font-weight:760;line-height:1.3}.card-title a{color:var(--text);text-decoration:none}.card-title a:hover{color:var(--blue)}.desc{margin:0 0 8px;color:#56657a;font-size:12.5px;line-height:1.45;min-height:18px}.domain{display:block;color:var(--blue);font-size:12px;text-decoration:none;word-break:break-all;margin-bottom:8px}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border-radius:6px;background:var(--grayBg);color:#475569;padding:3px 7px;font-size:11px;font-weight:650}.status{border-radius:6px;padding:3px 7px;font-size:11px;font-weight:750;white-space:nowrap}.s-unchecked{background:var(--grayBg);color:#475569}.s-alive{background:var(--greenBg);color:var(--green)}.s-warning{background:var(--amberBg);color:var(--amber)}.s-broken{background:var(--redBg);color:var(--red)}.card-actions{position:absolute;right:10px;bottom:10px;display:flex;gap:6px;opacity:.28;transition:.15s}.card:hover .card-actions{opacity:1}.select-mark{position:absolute;top:9px;right:9px}.select-mark input{width:auto}.list{display:grid;gap:8px}.row{display:grid;grid-template-columns:24px 1.2fr 1.4fr .75fr .8fr auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px 12px}.row b{font-size:13.5px}.row a{font-size:12px;color:var(--blue);text-decoration:none;word-break:break-all}.row .muted{font-size:12px;color:var(--sub)}.batch{padding:12px 14px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.batch-left{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.batch select{width:220px}.batch-note{color:var(--sub);font-size:12px}.hidden{display:none!important}.empty{background:#fff;border:1px dashed var(--line2);border-radius:var(--r2);padding:38px 18px;text-align:center;color:var(--sub)}.empty b{display:block;color:var(--text);font-size:17px;margin-bottom:4px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form-card,.data-card{padding:18px}.wide{grid-column:1/-1}.form-actions,.data-actions{display:flex;flex-wrap:wrap;gap:8px}.suggest-wrap{position:relative}.suggest{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);max-height:210px;overflow:auto;background:#fff;border:1px solid var(--line2);border-radius:8px;box-shadow:0 16px 34px rgba(15,23,42,.12);padding:6px}.suggest button{width:100%;border:0;background:transparent;text-align:left;padding:7px 8px;border-radius:6px;color:#334155;font-size:12.5px}.suggest button:hover{background:#eff6ff;color:var(--blue)}.manage-list{display:grid;gap:8px}.data-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.data-card h3{font-size:15px;margin:0 0 5px}.data-card p{margin:0 0 12px;color:var(--sub);font-size:12.5px}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:50;background:#0f172a;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;box-shadow:0 18px 40px rgba(15,23,42,.25)}.progress{color:var(--sub);font-size:12px;margin-top:8px;min-height:18px}#importJson,#importHtml{display:none}@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}.data-grid,.form-grid{grid-template-columns:1fr}.nav-tabs{grid-template-columns:1fr}.row{grid-template-columns:1fr}.row .select-cell{display:none}.batch{grid-template-columns:1fr}.batch select{width:100%}.top{align-items:flex-start;flex-direction:column}}@media(max-width:560px){.wrap{width:min(100% - 20px,1180px);padding-top:16px}.hero{padding:18px}.hero h1{font-size:26px}.top-actions,.form-actions,.data-actions{width:100%}.btn{flex:1}.filters{grid-template-columns:1fr}.links{grid-template-columns:1fr}.section{padding:14px}.card{min-height:auto}.card-actions{position:static;opacity:1;margin-top:10px}.card-main{width:100%}.card{display:block}.fav{margin-bottom:8px}}
+
+/* Button size refinement: keep import/export actions compact */
+label.btn{display:inline-flex;margin:0;color:var(--text);font-weight:650}
+.data-actions{align-items:center;gap:8px}
+.data-card .btn{padding:7px 11px;min-height:34px;font-size:12.5px;line-height:1.2;border-radius:7px;box-shadow:0 1px 4px rgba(15,23,42,.035)}
+.data-card .data-actions .btn{flex:0 0 auto;white-space:nowrap}
+.data-card h3{line-height:1.25}
+.data-card p{line-height:1.45;margin-bottom:11px}
+@media(max-width:560px){.data-actions .btn,.data-card .btn{flex:0 0 auto}.data-actions{width:auto}}
+
+
+/* Minimal fixes for list/card overlap in the uploaded base file */
+@media(min-width:901px){
+  /* Keep the selector column reserved in detailed list view.
+     Otherwise the hidden checkbox cell is removed and the title falls into the 24px column, causing URL overlap. */
+  .row .select-cell.hidden{display:block!important;visibility:hidden;pointer-events:none}
+}
+.row b,.row a,.row .muted{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-actions{display:flex;gap:6px;justify-content:flex-end;align-items:center;white-space:nowrap}
+
+/* Reserve space for card action buttons and hide them fully until hover, avoiding ghost/overlap. */
+.card{padding-bottom:52px}
+.card .chips{padding-right:4px}
+.card-actions{opacity:0;pointer-events:none;bottom:12px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff 20%);padding-left:16px}
+.card:hover .card-actions{opacity:1;pointer-events:auto}
+@media(max-width:560px){
+  .card{padding-bottom:14px}
+  .card-actions{background:transparent;padding-left:0;pointer-events:auto}
+}
+
+
+
+/* Bulk add panel */
+.bulk-help{margin:0 0 12px;color:var(--sub);font-size:12.5px;line-height:1.55}
+#bulkText{min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55}
+.bulk-options{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:12px}
+.checkline{display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--sub);font-size:12.5px;font-weight:600}
+.checkline input{width:auto;margin:0}
+.bulk-example{color:var(--muted);font-size:12px}
+:root[data-theme="dark"] .bulk-help,
+:root[data-theme="dark"] .bulk-options,
+:root[data-theme="dark"] .checkline{color:var(--sub)}
+
+/* Created / updated time display */
+.time-meta{display:flex;flex-wrap:wrap;gap:5px 10px;margin-top:7px;color:var(--muted);font-size:11px;line-height:1.35}
+.time-meta span{white-space:nowrap}
+.row{grid-template-columns:24px minmax(0,1.45fr) .75fr .7fr auto}
+.row-main{min-width:0;display:grid;gap:3px}
+.row-main b,.row-main a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-main a{font-size:12px;color:var(--blue);text-decoration:none}
+.row-time{margin-top:2px}
+.manage-list .row{grid-template-columns:24px minmax(0,1.45fr) .75fr .7fr auto}
+@media(max-width:900px){.row,.manage-list .row{grid-template-columns:1fr}.row-main a{white-space:normal;overflow:visible;text-overflow:clip}.row-time span{white-space:normal}}
+:root[data-theme="dark"] .time-meta{color:var(--muted)}
+
+
+/* Eye-care dark theme */
+:root[data-theme="dark"]{color-scheme:dark;--bg:#111827;--panel:#172033;--soft:#1f2937;--line:#2b3648;--line2:#3a4659;--text:#e5e7eb;--sub:#a7b0c0;--muted:#7c8798;--blue:#60a5fa;--blue2:#3b82f6;--green:#34d399;--greenBg:rgba(16,185,129,.15);--amber:#fbbf24;--amberBg:rgba(245,158,11,.16);--red:#f87171;--redBg:rgba(239,68,68,.15);--grayBg:#263244;--shadow:0 16px 36px rgba(0,0,0,.28)}
+:root[data-theme="dark"] body{background:radial-gradient(circle at 10% 0,rgba(96,165,250,.12),transparent 390px),var(--bg)}
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .section,
+:root[data-theme="dark"] .nav-tab,
+:root[data-theme="dark"] .stat,
+:root[data-theme="dark"] .row,
+:root[data-theme="dark"] .data-card,
+:root[data-theme="dark"] .form-card,
+:root[data-theme="dark"] .empty{background:rgba(23,32,51,.92);border-color:var(--line)}
+:root[data-theme="dark"] .card{background:linear-gradient(#1b2537,#172033);border-color:var(--line);box-shadow:none}
+:root[data-theme="dark"] .card:hover{border-color:#4b5f7a;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+:root[data-theme="dark"] .nav-tab.active{background:rgba(37,99,235,.18);border-color:rgba(96,165,250,.42)}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea{background:#111827;border-color:var(--line2);color:var(--text)}
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder{color:#788397}
+:root[data-theme="dark"] .btn{background:#1f2937;border-color:var(--line2);color:var(--text);box-shadow:none}
+:root[data-theme="dark"] .btn:hover:not(:disabled){border-color:#52627a}
+:root[data-theme="dark"] .btn.primary{background:var(--blue2);border-color:var(--blue2);color:#fff}
+:root[data-theme="dark"] .btn.ghost{background:transparent}
+:root[data-theme="dark"] .view-switch .btn.active{background:#e5e7eb;color:#111827;border-color:#e5e7eb}
+:root[data-theme="dark"] .fav{background:#21304a;color:var(--blue)}
+:root[data-theme="dark"] .card-title a,
+:root[data-theme="dark"] .empty b{color:var(--text)}
+:root[data-theme="dark"] .desc,
+:root[data-theme="dark"] label,
+:root[data-theme="dark"] select{color:var(--sub)}
+:root[data-theme="dark"] .section-head{border-bottom-color:#273244}
+:root[data-theme="dark"] .suggest{background:#172033;border-color:var(--line2);box-shadow:0 16px 34px rgba(0,0,0,.35)}
+:root[data-theme="dark"] .suggest button{color:var(--text)}
+:root[data-theme="dark"] .suggest button:hover{background:#21304a;color:var(--blue)}
+:root[data-theme="dark"] .card-actions{background:linear-gradient(90deg,rgba(23,32,51,0),#172033 20%)}
+@media(max-width:560px){:root[data-theme="dark"] .card-actions{background:transparent}}
+
+/* Batch management panel */
+.batch-manage-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end}
+.batch-manage-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.batch-manage-note{color:var(--sub);font-size:12px;margin:0 0 12px}
+.checkline-inline{display:flex;align-items:center;gap:8px;color:var(--sub);font-size:12px;font-weight:650}
+.checkline-inline input{width:auto}
+.manage-list .select-cell input{width:auto}
+@media(max-width:900px){.batch-manage-grid{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><i>★</i><span>本地书签目录</span></div>
+    <div class="top-actions"><button class="btn" id="themeToggle" type="button">暗色护眼</button><button class="btn" id="addQuick">添加书签</button><button class="btn primary" data-page="data">导入 / 导出</button><button class="btn" id="checkAll">检测全部</button></div>
+  </header>
+  <section class="hero"><h1>我的网址导航</h1><p>单 HTML 本地保存。日常用导航展示，批量维护到管理页，备份迁移到导入 / 导出。</p></section>
+  <nav class="nav-tabs"><button class="nav-tab active" data-page="home"><b>导航展示</b><span>卡片或列表浏览</span></button><button class="nav-tab" data-page="manage"><b>书签管理</b><span>添加、编辑、检测</span></button><button class="nav-tab" data-page="data"><b>导入 / 导出</b><span>备份、迁移、清空</span></button></nav>
+  <div class="stats" id="stats"></div>
+
+  <main id="homePage">
+    <section class="panel toolbar">
+      <div class="search"><span>⌕</span><input id="q" type="search" placeholder="搜索标题、网址、分类、标签或备注"></div>
+      <div class="filters"><select id="catFilter"></select><select id="domainFilter"></select><select id="tagFilter"></select><select id="statusFilter"><option value="all">全部状态</option><option value="unchecked">未检测</option><option value="alive">可访问</option><option value="warning">需关注</option></select><input id="urlFilter" placeholder="URL 包含"><select id="sort"><option value="category">按分类 A-Z</option><option value="domain">按域名 A-Z</option><option value="url">按 URL A-Z</option><option value="title">按标题 A-Z</option><option value="updated">最近更新</option><option value="added">最近添加</option><option value="status">按状态</option></select></div>
+      <div class="filter-mini"><span id="resultInfo">0 个结果</span><div class="view-switch"><button class="btn sm active" id="cardView">导航卡片</button><button class="btn sm" id="listView">详细列表</button></div></div>
+    </section>
+    <section class="panel batch">
+      <div class="batch-left"><span class="batch-note">批量操作</span><select id="checkCat"></select><button class="btn sm" id="checkCatBtn">检测分类</button><button class="btn sm" id="openCatBtn">打开分类</button><button class="btn sm" id="openCurrentBtn">打开当前结果</button><button class="btn sm" id="selectModeBtn">多选</button><button class="btn sm hidden" id="selectCurrentBtn">全选当前</button><button class="btn sm primary hidden" id="checkSelectedBtn">检测已选</button><button class="btn sm primary hidden" id="openSelectedBtn">打开已选</button><button class="btn sm hidden" id="cancelSelectBtn">取消选择</button></div>
+      <div class="progress" id="progress"></div>
+    </section>
+    <div class="grid" id="cards"></div>
+    <div class="list hidden" id="list"></div>
+    <div class="empty hidden" id="empty"><b>暂无书签</b>先添加或导入浏览器书签。</div>
+  </main>
+
+  <main id="managePage" class="hidden">
+    <section class="panel form-card">
+      <h2 id="formTitle" style="font-size:18px;margin:0 0 14px">添加书签</h2>
+      <form id="form" autocomplete="off"><input type="hidden" id="bid"><div class="form-grid">
+        <label><span>标题</span><input id="title" required placeholder="例如：GitHub"></label>
+        <label><span>URL</span><input id="url" required placeholder="https://example.com"></label>
+        <label class="suggest-wrap"><span>分类</span><input id="category" placeholder="选择已有分类或输入新的"><div class="suggest hidden" id="catSuggest"></div></label>
+        <label class="suggest-wrap"><span>标签</span><input id="tags" placeholder="用逗号分隔，可选择已有标签"><div class="suggest hidden" id="tagSuggest"></div></label>
+        <label class="wide"><span>备注</span><textarea id="note" placeholder="用途、账号、入口说明等"></textarea></label>
+      </div><div class="form-actions"><button class="btn primary" type="submit">保存</button><button class="btn" id="resetForm" type="button">清空</button></div></form>
+    </section>
+    <section class="panel form-card" style="margin-top:16px">
+      <h2 style="font-size:18px;margin:0 0 8px">批量添加</h2>
+      <p class="bulk-help">每行一个书签。只粘贴 URL 时会尽量读取页面标题；读不到时使用域名。支持 <b>标题 | URL | 分类 | 标签 | 备注</b>。</p>
+      <div class="form-grid">
+        <label class="wide"><span>链接列表</span><textarea id="bulkText" placeholder="例如：
+GitHub | https://github.com | 开发资源 | 代码, 开发 | 代码托管平台
+https://www.notion.so
+ChatGPT https://chat.openai.com"></textarea></label>
+        <label class="suggest-wrap"><span>默认分类</span><input id="bulkCategory" placeholder="没有填写分类时使用"><div class="suggest hidden" id="bulkCatSuggest"></div></label>
+        <label class="suggest-wrap"><span>默认标签</span><input id="bulkTags" placeholder="没有填写标签时使用，可用逗号分隔"><div class="suggest hidden" id="bulkTagSuggest"></div></label>
+        <div class="wide bulk-options"><label class="checkline"><input id="skipDuplicates" type="checkbox" checked>跳过重复 URL</label><span class="bulk-example">重复判断会忽略 URL 末尾的 /。</span></div>
+      </div>
+      <div class="form-actions"><button class="btn primary" id="bulkAddBtn" type="button">批量添加</button><button class="btn" id="clearBulkBtn" type="button">清空批量内容</button></div>
+    </section>
+    <section class="panel form-card" style="margin-top:16px">
+      <h2 style="font-size:18px;margin:0 0 8px">批量管理</h2>
+      <p class="batch-manage-note">可对已勾选、指定分类、当前筛选结果或全部书签批量修改。</p>
+      <div class="batch-manage-grid">
+        <label><span>处理范围</span><select id="batchManageScope"><option value="selected">已勾选书签</option><option value="category">指定分类</option><option value="current">当前筛选结果</option><option value="all">全部书签</option></select></label>
+        <label><span>指定分类</span><select id="batchManageCat"></select></label>
+        <label class="suggest-wrap"><span>改为分类</span><input id="batchSetCategory" placeholder="留空则不修改分类"><div class="suggest hidden" id="batchSetCatSuggest"></div></label>
+        <label class="suggest-wrap"><span>添加标签</span><input id="batchAddTags" placeholder="多个标签用逗号分隔"><div class="suggest hidden" id="batchAddTagSuggest"></div></label>
+        <label class="suggest-wrap"><span>移除标签</span><input id="batchRemoveTags" placeholder="多个标签用逗号分隔"><div class="suggest hidden" id="batchRemoveTagSuggest"></div></label>
+        <label><span>检测状态</span><select id="batchSetStatus"><option value="keep">不修改状态</option><option value="unchecked">设为未检测</option><option value="alive">设为可访问</option><option value="warning">设为需关注</option><option value="broken">设为失效</option></select></label>
+      </div>
+      <div class="batch-manage-actions">
+        <button class="btn primary" id="batchApplyBtn" type="button">应用修改</button>
+        <button class="btn" id="batchSelectCurrentManageBtn" type="button">勾选当前结果</button>
+        <button class="btn" id="batchSelectAllBtn" type="button">勾选全部</button>
+        <button class="btn" id="batchClearSelectedBtn" type="button">清空勾选</button>
+        <button class="btn" id="dedupePreviewBtn" type="button">检查重复</button>
+        <button class="btn danger" id="dedupeBtn" type="button">一键去重</button>
+        <button class="btn danger" id="batchDeleteBtn" type="button">删除范围内书签</button>
+      </div>
+    </section>
+    <section class="panel form-card" style="margin-top:16px"><h2 style="font-size:18px;margin:0 0 12px">管理列表</h2><div class="manage-list" id="manageList"></div></section>
+  </main>
+
+  <main id="dataPage" class="hidden">
+    <section class="data-grid">
+      <div class="panel data-card"><h3>导出单 HTML</h3><p>生成包含当前书签数据的新文件。</p><button class="btn primary" id="exportHtmlSelf">导出单文件</button></div>
+      <div class="panel data-card"><h3>JSON 备份</h3><p>适合备份和恢复全部字段。</p><div class="data-actions"><button class="btn" id="exportJson">导出 JSON</button><label class="btn"><input id="importJson" type="file" accept="application/json,.json">导入 JSON</label></div></div>
+      <div class="panel data-card"><h3>浏览器书签</h3><p>兼容常见浏览器导出的 HTML。</p><div class="data-actions"><button class="btn" id="exportBrowser">导出 HTML</button><label class="btn"><input id="importHtml" type="file" accept=".html,.htm,text/html">导入 HTML</label></div></div>
+      <div class="panel data-card"><h3>清空数据</h3><p>只清空当前浏览器本地数据。</p><button class="btn danger" id="clearAll">清空全部</button></div>
+    </section>
+  </main>
+</div>
+<div class="toast hidden" id="toast"></div>
+<script type="application/json" id="embeddedData">[]</script>
+<script>
+(()=>{const KEY='local-bookmarks-v1',THEME_KEY='local-bookmarks-theme';let bookmarks=[],page='home',view='card',selectMode=false,selected=new Set();
+function applyTheme(mode){document.documentElement.dataset.theme=mode;try{localStorage.setItem(THEME_KEY,mode)}catch(e){}const b=document.getElementById('themeToggle');if(b)b.textContent=mode==='dark'?'浅色模式':'暗色护眼'}
+applyTheme(document.documentElement.dataset.theme||'light');
+const $=id=>document.getElementById(id);const els={stats:$('stats'),home:$('homePage'),manage:$('managePage'),data:$('dataPage'),cards:$('cards'),list:$('list'),empty:$('empty'),q:$('q'),catFilter:$('catFilter'),domainFilter:$('domainFilter'),tagFilter:$('tagFilter'),statusFilter:$('statusFilter'),urlFilter:$('urlFilter'),sort:$('sort'),resultInfo:$('resultInfo'),progress:$('progress'),checkCat:$('checkCat'),toast:$('toast')};
+const now=()=>new Date().toISOString();const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16).slice(2);const host=u=>{try{return new URL(normalize(u)).hostname.replace(/^www\./,'')}catch{return''}};const normalize=u=>/^https?:\/\//i.test(String(u).trim())?String(u).trim():'https://'+String(u).trim();const tags=s=>String(s||'').split(/[,，]/).map(x=>x.trim()).filter(Boolean);const statusGroup=s=>!s||s==='unchecked'?'unchecked':['alive','redirect','restricted'].includes(s)?'alive':['broken','invalid'].includes(s)?'broken':'warning';const statusText=s=>({unchecked:'未检测',checking:'检测中',alive:'可访问',redirect:'可访问',restricted:'疑似可访问',warning:'需关注',timeout:'需关注',broken:'失效',invalid:'格式错误'}[s]||'未检测');const fmtTime=ts=>{if(!ts)return'无记录';const d=new Date(ts);if(Number.isNaN(d.getTime()))return'无记录';return d.toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(/\//g,'-')};const timeMeta=b=>`<div class="time-meta"><span>添加：${esc(fmtTime(b.createdAt))}</span><span>修改：${esc(fmtTime(b.updatedAt||b.createdAt))}</span></div>`;
+function save(){localStorage.setItem(KEY,JSON.stringify(bookmarks))}function load(){try{bookmarks=JSON.parse(localStorage.getItem(KEY)||'[]')}catch{bookmarks=[]}if(!bookmarks.length){try{const em=JSON.parse($('embeddedData').textContent||'[]');if(em.length){bookmarks=em;save()}}catch{}}let changed=false;bookmarks=bookmarks.map(b=>{if(!b.createdAt){b.createdAt=b.updatedAt||now();changed=true}if(!b.updatedAt){b.updatedAt=b.createdAt;changed=true}return b});if(changed)save()}
+function seed(){if(bookmarks.length)return;bookmarks=[{id:uid(),title:'GitHub',url:'https://github.com',category:'开发资源',tags:['代码','开发'],note:'代码托管平台',status:'unchecked',createdAt:now(),updatedAt:now()},{id:uid(),title:'ChatGPT',url:'https://chat.openai.com',category:'AI工具',tags:['AI'],note:'智能对话助手',status:'unchecked',createdAt:now(),updatedAt:now()},{id:uid(),title:'Notion',url:'https://www.notion.so',category:'效率工具',tags:['文档','笔记'],note:'笔记与知识管理',status:'unchecked',createdAt:now(),updatedAt:now()}];save()}
+const cats=()=>[...new Set(bookmarks.map(b=>b.category||'未分类'))].sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'));const domains=()=>[...new Set(bookmarks.map(b=>host(b.url)).filter(Boolean))].sort();const allTags=()=>[...new Set(bookmarks.flatMap(b=>b.tags||[]))].sort((a,b)=>a.localeCompare(b,'zh-Hans-CN'));
+function fillSelect(sel,items,allText){if(!sel)return;const old=sel.value;sel.innerHTML='<option value="all">'+allText+'</option>'+items.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');if([...sel.options].some(o=>o.value===old))sel.value=old}function refreshFilters(){fillSelect(els.catFilter,cats(),'全部分类');fillSelect(els.domainFilter,domains(),'全部域名');fillSelect(els.tagFilter,allTags(),'全部标签');fillSelect(els.checkCat,cats(),'选择分类');fillSelect($('batchManageCat'),cats(),'选择分类')}
+function filtered(){let arr=[...bookmarks],q=els.q.value.trim().toLowerCase(),cf=els.catFilter.value,df=els.domainFilter.value,tf=els.tagFilter.value,sf=els.statusFilter.value,uf=els.urlFilter.value.trim().toLowerCase();if(q)arr=arr.filter(b=>[b.title,b.url,b.category,b.note,(b.tags||[]).join(',')].join(' ').toLowerCase().includes(q));if(cf!=='all')arr=arr.filter(b=>(b.category||'未分类')===cf);if(df!=='all')arr=arr.filter(b=>host(b.url)===df);if(tf!=='all')arr=arr.filter(b=>(b.tags||[]).includes(tf));if(sf!=='all')arr=arr.filter(b=>statusGroup(b.status)===sf);if(uf)arr=arr.filter(b=>String(b.url).toLowerCase().includes(uf));const s=els.sort.value;arr.sort((a,b)=>{if(s==='domain')return host(a.url).localeCompare(host(b.url));if(s==='url')return a.url.localeCompare(b.url);if(s==='title')return a.title.localeCompare(b.title,'zh-Hans-CN');if(s==='updated')return String(b.updatedAt).localeCompare(String(a.updatedAt));if(s==='added')return String(b.createdAt).localeCompare(String(a.createdAt));if(s==='status')return statusGroup(a.status).localeCompare(statusGroup(b.status));return (a.category||'未分类').localeCompare(b.category||'未分类','zh-Hans-CN')||a.title.localeCompare(b.title,'zh-Hans-CN')});return arr}
+function renderStats(){const alive=bookmarks.filter(b=>statusGroup(b.status)==='alive').length,warn=bookmarks.filter(b=>statusGroup(b.status)==='warning').length;els.stats.innerHTML=`<span class="stat"><b>${bookmarks.length}</b>书签</span><span class="stat"><b>${cats().length}</b>分类</span><span class="stat"><b>${alive}</b>可访问</span><span class="stat"><b>${warn}</b>需关注</span>`}
+function card(b){const d=host(b.url),sg=statusGroup(b.status);return `<article class="card"><label class="select-mark ${selectMode?'':'hidden'}"><input type="checkbox" data-select="${b.id}" ${selected.has(b.id)?'checked':''}></label><div class="fav"><img src="https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(b.url)}" onerror="this.remove()"><span>${esc((b.title||'?')[0])}</span></div><div class="card-main"><h3 class="card-title"><a href="${esc(normalize(b.url))}" target="_blank">${esc(b.title)}</a><span class="status s-${sg}">${statusText(b.status)}</span></h3><p class="desc">${esc(b.note||'')}</p><a class="domain" href="${esc(normalize(b.url))}" target="_blank">${esc(d||b.url)}</a><div class="chips"><span class="chip">${esc(b.category||'未分类')}</span>${(b.tags||[]).slice(0,3).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div><div class="card-actions"><button class="btn sm" data-check="${b.id}">检测</button><button class="btn sm" data-edit="${b.id}">编辑</button><button class="btn sm" data-copy="${b.id}">复制</button></div></div></article>`}
+function renderHome(){const arr=filtered();els.resultInfo.textContent=`${arr.length} 个结果`;els.empty.classList.toggle('hidden',arr.length>0);els.cards.classList.toggle('hidden',view!=='card'||!arr.length);els.list.classList.toggle('hidden',view!=='list'||!arr.length);if(view==='card'){const groups={};arr.forEach(b=>{const c=b.category||'未分类';(groups[c]||(groups[c]=[])).push(b)});els.cards.innerHTML=Object.entries(groups).map(([c,bs])=>`<section class="section"><div class="section-head"><h2>${esc(c)}</h2><small>${bs.length} 个网站</small></div><div class="links">${bs.map(card).join('')}</div></section>`).join('')}else{els.list.innerHTML=arr.map(b=>`<div class="row"><span class="select-cell ${selectMode?'':'hidden'}"><input type="checkbox" data-select="${b.id}" ${selected.has(b.id)?'checked':''}></span><div class="row-main"><b>${esc(b.title)}</b><a href="${esc(normalize(b.url))}" target="_blank">${esc(b.url)}</a>${timeMeta(b)}</div><span class="muted">${esc(b.category||'未分类')}</span><span class="status s-${statusGroup(b.status)}">${statusText(b.status)}</span><span class="row-actions"><button class="btn sm" data-check="${b.id}">检测</button><button class="btn sm" data-edit="${b.id}">编辑</button></span></div>`).join('')}}
+function renderManage(){const box=$('manageList');box.innerHTML=bookmarks.map(b=>`<div class="row"><span class="select-cell"><input type="checkbox" data-select="${b.id}" ${selected.has(b.id)?'checked':''}></span><div class="row-main"><b>${esc(b.title)}</b><a href="${esc(normalize(b.url))}" target="_blank">${esc(b.url)}</a>${timeMeta(b)}</div><span class="muted">${esc(b.category||'未分类')}</span><span class="status s-${statusGroup(b.status)}">${statusText(b.status)}</span><span class="row-actions"><button class="btn sm" data-edit="${b.id}">编辑</button><button class="btn sm" data-check="${b.id}">检测</button><button class="btn sm danger" data-del="${b.id}">删除</button></span></div>`).join('')||'<div class="empty"><b>暂无书签</b>先添加或导入。</div>'}
+function render(){refreshFilters();renderStats();renderHome();renderManage();document.querySelectorAll('.nav-tab').forEach(b=>b.classList.toggle('active',b.dataset.page===page));els.home.classList.toggle('hidden',page!=='home');els.manage.classList.toggle('hidden',page!=='manage');els.data.classList.toggle('hidden',page!=='data');$('cardView').classList.toggle('active',view==='card');$('listView').classList.toggle('active',view==='list');['selectCurrentBtn','checkSelectedBtn','openSelectedBtn','cancelSelectBtn'].forEach(id=>$(id).classList.toggle('hidden',!selectMode))}
+function toast(t){els.toast.textContent=t;els.toast.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>els.toast.classList.add('hidden'),2200)}
+function edit(id){const b=bookmarks.find(x=>x.id===id);if(!b)return;page='manage';$('formTitle').textContent='编辑书签';$('bid').value=b.id;$('title').value=b.title;$('url').value=b.url;$('category').value=b.category||'';$('tags').value=(b.tags||[]).join(', ');$('note').value=b.note||'';render();scrollTo({top:0,behavior:'smooth'})}
+async function checkOne(id){const b=bookmarks.find(x=>x.id===id);if(!b)return;b.status='checking';render();let st='warning';try{const c=new AbortController();const timer=setTimeout(()=>c.abort(),8000);const r=await fetch(normalize(b.url),{method:'HEAD',mode:'no-cors',signal:c.signal});clearTimeout(timer);st=r.type==='opaque'?'restricted':(r.ok?'alive':(r.status>=300&&r.status<400?'redirect':(r.status>=400?'broken':'warning')))}catch(e){st=e.name==='AbortError'?'timeout':'warning'}b.status=st;b.checkedAt=now();b.updatedAt=now();save();render()}
+async function checkMany(arr){for(let i=0;i<arr.length;i++){els.progress.textContent=`检测中 ${i+1}/${arr.length}`;await checkOne(arr[i].id)}els.progress.textContent='检测完成';toast('检测完成')}
+function openMany(arr){const list=arr.filter(b=>b&&b.url);if(!list.length)return toast('没有可打开的链接');if(list.length>12&&!confirm(`即将打开 ${list.length} 个链接，浏览器可能会拦截弹窗。是否继续？`))return;let opened=0;for(const b of list){const w=window.open(normalize(b.url),'_blank','noopener');if(w)opened++}toast(opened===list.length?`已尝试打开 ${list.length} 个链接`:`已打开 ${opened}/${list.length} 个链接，未打开的可能被浏览器拦截`)}
+function resetForm(){$('form').reset();$('bid').value='';$('formTitle').textContent='添加书签'}
+function download(name,text,type='application/octet-stream'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function exportBrowser(){const groups={};bookmarks.forEach(b=>{(groups[b.category||'未分类']||(groups[b.category||'未分类']=[])).push(b)});let h='<!DOCTYPE NETSCAPE-Bookmark-file-1><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"><TITLE>Bookmarks</TITLE><H1>Bookmarks</H1><DL><p>';for(const [c,bs] of Object.entries(groups)){h+=`<DT><H3>${esc(c)}</H3><DL><p>`+bs.map(b=>`<DT><A HREF="${esc(normalize(b.url))}" ADD_DATE="${Math.floor(new Date(b.createdAt||now()).getTime()/1000)}">${esc(b.title)}</A>`).join('')+'</DL><p>'}h+='</DL><p>';download('bookmarks.html',h,'text/html')}
+function parseBrowser(html){const doc=new DOMParser().parseFromString(html,'text/html'),out=[];function walk(dl,cat){[...dl.children].forEach(el=>{if(el.tagName==='DT'){const h3=el.querySelector(':scope>h3'),a=el.querySelector(':scope>a'),sub=el.querySelector(':scope>dl');if(a)out.push({id:uid(),title:a.textContent.trim()||a.href,url:a.href,category:cat||'未分类',tags:[],note:'',status:'unchecked',createdAt:now(),updatedAt:now()});if(h3&&sub)walk(sub,h3.textContent.trim())}})}walk(doc.querySelector('dl')||doc.body,'');return out}
+function urlKey(u){try{return normalize(u).replace(/\/+$/,'').toLowerCase()}catch{return String(u||'').trim().replace(/\/+$/,'').toLowerCase()}}
+function findUrlPart(text){const m=String(text||'').match(/https?:\/\/[^\s|，,]+|www\.[^\s|，,]+|[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s|，,]*)?/i);return m?m[0]:''}
+function titleFromUrl(u){const h=host(u);return h?h.split('.')[0].replace(/^./,c=>c.toUpperCase()):u}
+async function fetchPageTitle(u){try{const c=new AbortController();const timer=setTimeout(()=>c.abort(),6500);const r=await fetch(normalize(u),{method:'GET',mode:'cors',signal:c.signal});clearTimeout(timer);if(!r.ok)return '';const html=await r.text();const m=html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);if(!m)return '';const box=document.createElement('textarea');box.innerHTML=m[1].replace(/\s+/g,' ').trim();return box.value.trim()}catch{return ''}}
+function parseBulkLine(line,defCat,defTags){line=String(line||'').trim();if(!line)return null;let title='',url='',category='',tagText='',note='',autoTitle=false;const hasSep=/[|\t]/.test(line);if(hasSep){const parts=line.split(/\s*\|\s*|\t+/).map(x=>x.trim()).filter(Boolean);const ui=parts.findIndex(p=>findUrlPart(p));if(ui<0)return null;url=findUrlPart(parts[ui]);if(ui===0){title=parts[1]||'';autoTitle=!title;category=parts[2]||defCat;tagText=parts[3]||defTags;note=parts.slice(4).join(' | ')}else{title=parts[0]||'';autoTitle=!title;category=parts[ui+1]||defCat;tagText=parts[ui+2]||defTags;note=parts.slice(ui+3).join(' | ')}}else{url=findUrlPart(line);if(!url)return null;const before=line.slice(0,line.indexOf(url)).trim();const after=line.slice(line.indexOf(url)+url.length).trim();title=before;autoTitle=!before;category=defCat;tagText=defTags;note=after}
+return {id:uid(),title:title.trim()||titleFromUrl(url),url:normalize(url),category:(category||defCat||'未分类').trim(),tags:tags(tagText||defTags),note:(note||'').trim(),status:'unchecked',createdAt:now(),updatedAt:now(),autoTitle}}
+async function bulkAdd(){const text=$('bulkText').value;const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length)return toast('请先粘贴链接');const defCat=$('bulkCategory').value.trim();const defTags=$('bulkTags').value.trim();const skip=$('skipDuplicates').checked;const seen=new Set(bookmarks.map(b=>urlKey(b.url)));const added=[];let invalid=0,dup=0,titleOk=0;for(const line of lines){const item=parseBulkLine(line,defCat,defTags);if(!item){invalid++;continue}const key=urlKey(item.url);if(skip&&seen.has(key)){dup++;continue}seen.add(key);added.push(item)}for(let i=0;i<added.length;i++){if(!added[i].autoTitle)continue;els.progress.textContent=`读取页面标题 ${i+1}/${added.length}`;const t=await fetchPageTitle(added[i].url);if(t){added[i].title=t;titleOk++}delete added[i].autoTitle}if(added.length){bookmarks=[...added,...bookmarks];save()}els.progress.textContent='';render();toast(`已添加 ${added.length} 个${titleOk?`，自动读取标题 ${titleOk} 个`:''}${dup?`，跳过重复 ${dup} 个`:''}${invalid?`，无效 ${invalid} 行`:''}`)}
+
+function dedupeKey(u){try{const x=new URL(normalize(u));x.hash='';let p=x.pathname.replace(/\/+$/,'');if(!p)p='';return x.hostname.replace(/^www\./,'').toLowerCase()+p.toLowerCase()+x.search.toLowerCase()}catch{return String(u||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/+$/,'')}}
+function findDuplicates(){const seen=new Map(),dups=[];for(const b of bookmarks){const k=dedupeKey(b.url);if(!k)continue;if(seen.has(k))dups.push({keep:seen.get(k),drop:b,key:k});else seen.set(k,b)}return dups}
+function previewDedupe(){const dups=findDuplicates();if(!dups.length)return toast('没有发现重复书签');const groups=new Map();dups.forEach(x=>{if(!groups.has(x.key))groups.set(x.key,[]);groups.get(x.key).push(x.drop)});toast(`发现 ${dups.length} 条重复书签，涉及 ${groups.size} 个 URL`)}
+function mergeBookmarkData(keep,drop){const kt=new Set(keep.tags||[]);(drop.tags||[]).forEach(t=>kt.add(t));keep.tags=[...kt];if((!keep.note||!keep.note.trim())&&drop.note)keep.note=drop.note;if((!keep.category||keep.category==='未分类')&&drop.category)keep.category=drop.category;if((!keep.status||keep.status==='unchecked')&&drop.status)keep.status=drop.status;if(drop.checkedAt&&(!keep.checkedAt||String(drop.checkedAt)>String(keep.checkedAt)))keep.checkedAt=drop.checkedAt;if(drop.createdAt&&(!keep.createdAt||String(drop.createdAt)<String(keep.createdAt)))keep.createdAt=drop.createdAt;if(drop.updatedAt&&(!keep.updatedAt||String(drop.updatedAt)>String(keep.updatedAt)))keep.updatedAt=drop.updatedAt;else keep.updatedAt=now()}
+function dedupeBookmarks(){const dups=findDuplicates();if(!dups.length)return toast('没有发现重复书签');if(!confirm(`发现 ${dups.length} 条重复书签。将保留当前列表中靠前的一条，并合并标签、备注、时间等信息，确定去重？`))return;const remove=new Set();for(const x of dups){mergeBookmarkData(x.keep,x.drop);remove.add(x.drop.id);selected.delete(x.drop.id)}bookmarks=bookmarks.filter(b=>!remove.has(b.id));save();render();toast(`已去重，删除 ${remove.size} 条重复书签`)}
+function batchTargets(){const scope=$('batchManageScope')?.value||'selected';let arr=[];if(scope==='selected')arr=bookmarks.filter(b=>selected.has(b.id));else if(scope==='category'){const c=$('batchManageCat')?.value;if(!c||c==='all')return [];arr=bookmarks.filter(b=>(b.category||'未分类')===c)}else if(scope==='current')arr=filtered();else arr=[...bookmarks];return arr}
+function applyBatchManage(){const arr=batchTargets();if(!arr.length)return toast('没有匹配的书签');const newCat=$('batchSetCategory').value.trim();const add=tags($('batchAddTags').value);const remove=tags($('batchRemoveTags').value);const st=$('batchSetStatus').value;let changed=0;for(const b of arr){let did=false;if(newCat){b.category=newCat;did=true}if(add.length){b.tags=[...new Set([...(b.tags||[]),...add])];did=true}if(remove.length){const rm=new Set(remove);b.tags=(b.tags||[]).filter(t=>!rm.has(t));did=true}if(st&&st!=='keep'){b.status=st;did=true}if(did){b.updatedAt=now();changed++}}if(!changed)return toast('没有需要修改的内容');save();render();toast(`已修改 ${changed} 个书签`)}
+function deleteBatchManage(){const arr=batchTargets();if(!arr.length)return toast('没有匹配的书签');if(!confirm(`确定删除 ${arr.length} 个书签？`))return;const ids=new Set(arr.map(b=>b.id));bookmarks=bookmarks.filter(b=>!ids.has(b.id));ids.forEach(id=>selected.delete(id));save();render();toast(`已删除 ${ids.size} 个书签`)}
+function setupSuggest(input,panel,getItems,multi){function show(){const val=input.value.split(/[,，]/).pop().trim().toLowerCase();const chosen=multi?tags(input.value):[];const items=getItems().filter(x=>(!val||x.toLowerCase().includes(val))&&!chosen.includes(x)).slice(0,12);panel.innerHTML=items.map(x=>`<button type="button" data-v="${esc(x)}">${esc(x)}</button>`).join('')||'<button type="button" disabled>没有匹配项</button>';panel.classList.remove('hidden')}input.addEventListener('focus',show);input.addEventListener('input',show);panel.addEventListener('mousedown',e=>{const b=e.target.closest('button[data-v]');if(!b)return;e.preventDefault();if(multi){let parts=tags(input.value);parts.push(b.dataset.v);input.value=[...new Set(parts)].join(', ')}else input.value=b.dataset.v;panel.classList.add('hidden')});document.addEventListener('click',e=>{if(!panel.parentElement.contains(e.target))panel.classList.add('hidden')})}
+function bind(){document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{page=b.dataset.page;render()}));['q','catFilter','domainFilter','tagFilter','statusFilter','urlFilter','sort'].forEach(id=>$(id).addEventListener('input',render));$('cardView').onclick=()=>{view='card';render()};$('listView').onclick=()=>{view='list';render()};$('themeToggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');$('addQuick').onclick=()=>{page='manage';resetForm();render()};$('bulkAddBtn').onclick=bulkAdd;$('clearBulkBtn').onclick=()=>{$('bulkText').value='';toast('已清空')};$('form').onsubmit=e=>{e.preventDefault();const id=$('bid').value;const data={title:$('title').value.trim(),url:normalize($('url').value),category:$('category').value.trim()||'未分类',tags:tags($('tags').value),note:$('note').value.trim(),updatedAt:now()};if(id){Object.assign(bookmarks.find(b=>b.id===id),data)}else bookmarks.unshift({id:uid(),...data,status:'unchecked',createdAt:now()});save();resetForm();toast('已保存');render()};$('resetForm').onclick=resetForm;document.body.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.edit)edit(t.dataset.edit);if(t.dataset.check)checkOne(t.dataset.check);if(t.dataset.copy){const b=bookmarks.find(x=>x.id===t.dataset.copy);navigator.clipboard?.writeText(b.url);toast('已复制 URL')}if(t.dataset.del&&confirm('确定删除这个书签？')){bookmarks=bookmarks.filter(b=>b.id!==t.dataset.del);save();render()}});document.body.addEventListener('change',e=>{if(e.target.matches('[data-select]')){e.target.checked?selected.add(e.target.dataset.select):selected.delete(e.target.dataset.select);}});$('checkAll').onclick=()=>checkMany(bookmarks);$('checkCatBtn').onclick=()=>{const c=els.checkCat.value;if(c==='all')return toast('请选择分类');checkMany(bookmarks.filter(b=>(b.category||'未分类')===c))};$('openCatBtn').onclick=()=>{const c=els.checkCat.value;if(c==='all')return toast('请选择分类');openMany(bookmarks.filter(b=>(b.category||'未分类')===c))};$('openCurrentBtn').onclick=()=>openMany(filtered());$('selectModeBtn').onclick=()=>{selectMode=true;selected.clear();render()};$('selectCurrentBtn').onclick=()=>{filtered().forEach(b=>selected.add(b.id));render()};$('checkSelectedBtn').onclick=()=>checkMany(bookmarks.filter(b=>selected.has(b.id)));$('openSelectedBtn').onclick=()=>openMany(bookmarks.filter(b=>selected.has(b.id)));$('cancelSelectBtn').onclick=()=>{selectMode=false;selected.clear();render()};$('exportJson').onclick=()=>download('bookmarks-backup.json',JSON.stringify(bookmarks,null,2),'application/json');$('importJson').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{const arr=JSON.parse(t);bookmarks=arr.map(b=>({...b,id:b.id||uid(),createdAt:b.createdAt||now(),updatedAt:b.updatedAt||now(),status:b.status||'unchecked'}));save();render();toast('导入完成')})};$('exportBrowser').onclick=exportBrowser;$('importHtml').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{bookmarks=[...parseBrowser(t),...bookmarks];save();render();toast('导入完成')})};$('clearAll').onclick=()=>{if(confirm('确定清空全部本地书签？')){bookmarks=[];save();render()}};$('exportHtmlSelf').onclick=()=>{let html=document.documentElement.outerHTML.replace(/<script type="application\/json" id="embeddedData">[\s\S]*?<\/script>/,`<script type="application/json" id="embeddedData">${esc(JSON.stringify(bookmarks))}<\/script>`);download('bookmarks-onefile-with-data.html','<!doctype html>\n'+html,'text/html')};$('batchApplyBtn').onclick=applyBatchManage;$('dedupePreviewBtn').onclick=previewDedupe;$('dedupeBtn').onclick=dedupeBookmarks;$('batchDeleteBtn').onclick=deleteBatchManage;$('batchSelectCurrentManageBtn').onclick=()=>{filtered().forEach(b=>selected.add(b.id));render();toast('已勾选当前结果')};$('batchSelectAllBtn').onclick=()=>{bookmarks.forEach(b=>selected.add(b.id));render();toast('已勾选全部')};$('batchClearSelectedBtn').onclick=()=>{selected.clear();render();toast('已清空勾选')};setupSuggest($('category'),$('catSuggest'),cats,false);setupSuggest($('tags'),$('tagSuggest'),allTags,true);setupSuggest($('bulkCategory'),$('bulkCatSuggest'),cats,false);setupSuggest($('bulkTags'),$('bulkTagSuggest'),allTags,true);setupSuggest($('batchSetCategory'),$('batchSetCatSuggest'),cats,false);setupSuggest($('batchAddTags'),$('batchAddTagSuggest'),allTags,true);setupSuggest($('batchRemoveTags'),$('batchRemoveTagSuggest'),allTags,true)}
+load();seed();bind();render();})();
+</script>
+</body></html>
