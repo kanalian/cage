@@ -16,8 +16,16 @@
         .pill-glass:hover { background: rgba(255, 255, 255, 0.15); color: white !important; }
         .filter-btn { padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); color: #666; cursor: pointer; }
         .filter-btn.active { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #60a5fa; }
-        /* 自定义分类样式 */
-        .cat-btn { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); }
+        
+        .search-pill { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px; }
+        
+        /* 紧凑型数据库操作按钮 */
+        .db-action { font-size: 10px; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 4px; transition: opacity 0.2s; cursor: pointer; }
+        .db-action:hover { opacity: 0.7; }
+        .db-action.import { color: #10b981; } 
+        .db-action.export { color: #3b82f6; } 
+        .db-action.clear { color: #ef4444; }  
+
         [x-cloak] { display: none !important; }
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -25,7 +33,6 @@
 </head>
 <body x-data="app()" class="bg-black text-white h-screen w-full flex flex-col items-center">
 
-    <!-- 背景 -->
     <div class="fixed inset-0 -z-10 bg-black">
         <img :src="config.bgImage" class="w-full h-full object-cover opacity-70">
     </div>
@@ -38,11 +45,9 @@
         <span x-text="config.logoText"></span>
     </div>
 
-    <!-- 中心对话框 -->
     <div class="flex-1 w-full flex items-center justify-center px-6">
         <div class="w-full max-w-2xl glass rounded-[2.5rem] p-8 shadow-2xl relative h-[480px] flex flex-col justify-center">
             
-            <!-- 设置与历史面板 -->
             <div x-show="showSettings" x-cloak x-transition.opacity class="absolute inset-0 z-30 glass rounded-[2.5rem] p-8 flex flex-col">
                 <div class="flex gap-6 mb-4 border-b border-white/10 text-sm">
                     <button @click="tab = 'edit'" :class="tab === 'edit' ? 'text-blue-400 border-b border-blue-400 pb-2' : 'text-gray-500 pb-2'">Editor</button>
@@ -51,62 +56,64 @@
                     <button @click="showSettings = false"><i data-lucide="x" class="w-5 h-5 text-gray-500 hover:text-white"></i></button>
                 </div>
 
-                <!-- 历史查看 -->
+                <!-- 历史面板内容 -->
                 <div x-show="tab === 'history'" class="flex-1 flex flex-col min-h-0">
-                    <!-- 分类过滤器 -->
-                    <div class="flex flex-wrap gap-2 mb-2 overflow-x-auto pb-1 custom-scroll">
-                        <span class="text-[9px] text-gray-500 font-bold uppercase py-1 w-full">System Filters</span>
-                        <button @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'active' : ''" class="filter-btn">All</button>
-                        <button @click="activeCategory = 'text'" :class="activeCategory === 'text' ? 'active' : ''" class="filter-btn">Text</button>
-                        <button @click="activeCategory = 'url'" :class="activeCategory === 'url' ? 'active' : ''" class="filter-btn">URL</button>
-                        <button @click="activeCategory = 'image'" :class="activeCategory === 'image' ? 'active' : ''" class="filter-btn">Image</button>
+                    
+                    <!-- 1. 搜索框 -->
+                    <div class="relative search-pill mb-4 px-4 py-2 flex items-center gap-3">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500"></i>
+                        <input type="text" x-model="searchQuery" placeholder="Search records..." class="bg-transparent border-none outline-none text-xs w-full text-gray-200 focus:ring-0">
                     </div>
 
-                    <!-- 自定义分类列表 -->
-                    <div class="flex flex-wrap gap-2 mb-4">
-                        <span class="text-[9px] text-gray-500 font-bold uppercase py-1 w-full">Custom Folders</span>
-                        <template x-for="cat in customCategories" :key="cat">
-                            <div class="relative group">
-                                <button @click="activeCategory = cat" :class="activeCategory === cat ? 'active' : ''" class="filter-btn" x-text="cat"></button>
-                                <button @click="removeCategory(cat)" class="absolute -top-1 -right-1 hidden group-hover:block bg-red-500 text-white rounded-full w-3 h-3 text-[8px] flex items-center justify-center">×</button>
+                    <!-- 2. 分类与操作组合行 (消灭了留空) -->
+                    <div class="flex flex-col gap-4 mb-6">
+                        <!-- 系统分类标题与操作按钮对齐 -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">System Filters</span>
+                            <!-- 操作按钮移动到这里了 -->
+                            <div class="flex gap-4">
+                                <button @click="$refs.importInput.click()" class="db-action import"><i data-lucide="upload" class="w-3 h-3"></i>Import</button>
+                                <input type="file" x-ref="importInput" class="hidden" accept=".json" @change="importHistory">
+                                <button @click="exportHistory" class="db-action export"><i data-lucide="download" class="w-3 h-3"></i>Export</button>
+                                <button @click="clearHistory" class="db-action clear">Clear</button>
                             </div>
-                        </template>
-                        <button @click="addCategory" class="filter-btn cat-btn">+ New</button>
+                        </div>
+
+                        <!-- 分类按钮 -->
+                        <div class="flex flex-wrap gap-2">
+                            <button @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'active' : ''" class="filter-btn">All</button>
+                            <button @click="activeCategory = 'text'" :class="activeCategory === 'text' ? 'active' : ''" class="filter-btn">Text</button>
+                            <button @click="activeCategory = 'url'" :class="activeCategory === 'url' ? 'active' : ''" class="filter-btn">URL</button>
+                            <button @click="activeCategory = 'image'" :class="activeCategory === 'image' ? 'active' : ''" class="filter-btn">Image</button>
+                        </div>
+
+                        <div class="mt-2">
+                            <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest block mb-2">Custom Folders</span>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="cat in customCategories" :key="cat">
+                                    <div class="relative group">
+                                        <button @click="activeCategory = cat" :class="activeCategory === cat ? 'active' : ''" class="filter-btn" x-text="cat"></button>
+                                        <button @click="removeCategory(cat)" class="absolute -top-1 -right-1 hidden group-hover:block bg-red-500 text-white rounded-full w-3 h-3 text-[8px] flex items-center justify-center">×</button>
+                                    </div>
+                                </template>
+                                <button @click="addCategory" class="filter-btn border-dashed border-gray-600">+ New</button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="relative mb-4">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500"></i>
-                        <input type="text" x-model="searchQuery" placeholder="Search records..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs outline-none">
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto pr-2 custom-scroll space-y-3">
+                    <!-- 3. 记录列表 -->
+                    <div class="flex-1 overflow-y-auto pr-2 custom-scroll space-y-3 pb-4">
                         <template x-for="log in sortedLogs()" :key="log.id">
                             <div class="p-3 bg-white/5 rounded-xl border border-white/5 relative group">
                                 <div class="absolute top-3 right-3 flex gap-2">
-                                    <!-- 文件夹分配下拉 -->
-                                    <div class="relative" x-data="{ open: false }">
-                                        <button @click="open = !open" class="text-gray-600 hover:text-white transition opacity-0 group-hover:opacity-100"><i data-lucide="folder-plus" class="w-3 h-3"></i></button>
-                                        <div x-show="open" @click.away="open = false" class="absolute right-0 top-full mt-1 w-32 glass z-50 rounded-lg py-1 shadow-xl text-[10px]">
-                                            <button @click="moveToFolder(log.id, null); open = false" class="w-full px-3 py-1.5 text-left hover:bg-white/10">Untagged</button>
-                                            <template x-for="cat in customCategories" :key="cat">
-                                                <button @click="moveToFolder(log.id, cat); open = false" class="w-full px-3 py-1.5 text-left hover:bg-white/10" x-text="cat"></button>
-                                            </template>
-                                        </div>
-                                    </div>
                                     <button @click="togglePin(log.id)" class="opacity-0 group-hover:opacity-100 transition" :class="log.isPinned ? 'text-blue-400 opacity-100' : 'text-gray-600'"><i data-lucide="pin" class="w-3 h-3"></i></button>
+                                    <button @click="deleteLog(log.id)" class="opacity-0 group-hover:opacity-100 transition text-gray-600 hover:text-red-400"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                                 </div>
-                                
-                                <template x-if="log.image">
-                                    <img :src="log.image" class="w-16 h-16 object-cover rounded mb-2 border border-white/10">
-                                </template>
-                                
-                                <div class="text-xs text-white/90 break-all" x-text="log.text"></div>
-                                
+                                <template x-if="log.image"><img :src="log.image" class="w-16 h-16 object-cover rounded mb-2 border border-white/10"></template>
+                                <div class="text-xs text-white/90 break-all pr-12" x-text="log.text"></div>
                                 <div class="flex items-center gap-2 mt-2">
-                                    <span class="text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400 uppercase" x-text="log.type"></span>
-                                    <template x-if="log.folder">
-                                        <span class="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase font-bold" x-text="log.folder"></span>
-                                    </template>
+                                    <span class="text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400 uppercase font-bold" x-text="log.type"></span>
+                                    <template x-if="log.folder"><span class="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase font-bold" x-text="log.folder"></span></template>
                                     <span class="text-[9px] text-gray-500 uppercase tracking-widest" x-text="log.time"></span>
                                 </div>
                             </div>
@@ -115,7 +122,6 @@
                 </div>
 
                 <div x-show="tab === 'edit'" class="overflow-y-auto flex-1 space-y-4 pr-2 custom-scroll">
-                    <!-- 编辑器部分保持原样 -->
                     <div class="space-y-2">
                         <label class="text-[9px] text-gray-500 uppercase font-bold ml-1">Search Engines (JSON)</label>
                         <textarea x-model="engineConfigStr" @blur="updateEngines" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs outline-none h-32 font-mono"></textarea>
@@ -127,19 +133,17 @@
                         </div>
                     </template>
                 </div>
-                <button @click="showSettings = false" class="mt-4 w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold">Close Editor</button>
+                <button @click="showSettings = false" class="mt-4 w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold">Close Panel</button>
             </div>
 
-            <!-- 主界面 (保持原样) -->
+            <!-- 主界面 -->
             <div x-show="!showSettings" x-transition.opacity>
                 <div class="mb-2 text-gray-400 text-sm font-light flex items-center gap-2">
                     <span x-text="config.greeting"></span>
                 </div>
                 <h1 class="text-3xl font-medium mb-8 leading-tight" x-text="config.mainQuestion"></h1>
-
                 <div class="input-glass rounded-2xl p-4 mb-6 relative border border-white/5">
                     <textarea x-model="userInput" @keydown.enter.prevent="handleExecute" class="bg-transparent w-full outline-none text-lg resize-none placeholder-gray-500" :placeholder="config.placeholder" rows="1"></textarea>
-                    
                     <div class="flex justify-between items-center mt-4 pt-2 border-t border-white/5 relative">
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="text-[10px] text-gray-400 font-bold tracking-widest uppercase hover:text-blue-400 transition flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded">
@@ -147,7 +151,7 @@
                                 <span x-text="currentEngine.name"></span>
                                 <i data-lucide="chevron-up" class="w-3 h-3 transition" :class="open ? 'rotate-180' : ''"></i>
                             </button>
-                            <div x-show="open" @click.away="open = false" x-cloak x-transition class="absolute bottom-full left-0 mb-2 w-32 glass rounded-xl py-1 overflow-hidden z-50">
+                            <div x-show="open" @click.away="open = false" x-cloak class="absolute bottom-full left-0 mb-2 w-32 glass rounded-xl py-1 overflow-hidden z-50">
                                 <template x-for="engine in searchEngines" :key="engine.name">
                                     <button @click="currentEngine = engine; open = false" class="w-full px-3 py-2 text-[10px] text-left hover:bg-white/10 flex items-center gap-2 font-bold tracking-widest uppercase">
                                         <i :data-lucide="engine.icon" class="w-3 h-3"></i>
@@ -156,7 +160,6 @@
                                 </template>
                             </div>
                         </div>
-
                         <div class="flex gap-4 text-gray-400 items-center">
                             <input type="file" x-ref="fileInput" class="hidden" accept="image/*" @change="handleImg">
                             <button @click="$refs.fileInput.click()" class="hover:text-blue-400 transition" :class="pendingImage ? 'text-blue-500' : ''"><i data-lucide="image" class="w-4 h-4"></i></button>
@@ -165,7 +168,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="flex flex-wrap gap-2">
                     <button @click="showSettings = true; tab = 'history'" class="pill-glass px-4 py-2 rounded-xl text-xs font-medium text-blue-400 flex items-center gap-1.5">
                         <i data-lucide="history" class="w-3 h-3"></i><span>History</span>
@@ -181,16 +183,15 @@
     <script>
         function app() {
             return {
-                showSettings: false, tab: 'edit', userInput: '', pendingImage: null, searchQuery: '',
+                showSettings: false, tab: 'history', userInput: '', pendingImage: null, searchQuery: '',
                 activeCategory: 'all', 
                 logs: JSON.parse(localStorage.getItem('p_logs') || '[]'),
-                // 新增：自定义分类存储
                 customCategories: JSON.parse(localStorage.getItem('p_custom_cats') || '["Work", "Notes"]'),
                 
                 searchEngines: [
                     { name: 'Records', icon: 'history', url: null },
                     { name: 'Google', icon: 'globe', url: 'https://www.google.com/search?q=' },
-                    { name: 'Baidu', icon: 'search', url: 'https://www.baidu.com/s?wd=' }
+                    { name: 'Github', icon: 'github', url: 'https://github.com/search?q=' }
                 ],
                 currentEngine: null,
                 engineConfigStr: '',
@@ -212,19 +213,67 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
 
-                // 新增：管理分类的方法
+                exportHistory() {
+                    const backup = { logs: this.logs, customCategories: this.customCategories };
+                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `history_${new Date().getTime()}.json`;
+                    link.click();
+                },
+
+                importHistory(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
+                            const data = JSON.parse(ev.target.result);
+                            if (data.logs) {
+                                const existingIds = new Set(this.logs.map(l => l.id));
+                                const newLogs = data.logs.filter(l => !existingIds.has(l.id));
+                                this.logs = [...newLogs, ...this.logs];
+                                if (data.customCategories) {
+                                    this.customCategories = [...new Set([...this.customCategories, ...data.customCategories])];
+                                }
+                                this.saveData();
+                            }
+                        } catch (err) { alert('Invalid format'); }
+                    };
+                    reader.readAsText(file);
+                },
+
+                clearHistory() {
+                    if (confirm("Clear all records?")) {
+                        this.logs = [];
+                        this.saveData();
+                    }
+                },
+
+                deleteLog(id) {
+                    this.logs = this.logs.filter(l => l.id !== id);
+                    this.saveData();
+                },
+
+                saveData() {
+                    localStorage.setItem('p_logs', JSON.stringify(this.logs));
+                    localStorage.setItem('p_custom_cats', JSON.stringify(this.customCategories));
+                    this.refreshIcons();
+                },
+
                 addCategory() {
                     const name = prompt("Enter folder name:");
                     if (name && !this.customCategories.includes(name)) {
                         this.customCategories.push(name);
-                        localStorage.setItem('p_custom_cats', JSON.stringify(this.customCategories));
+                        this.saveData();
                     }
                 },
 
                 removeCategory(name) {
                     if (confirm(`Remove folder "${name}"?`)) {
                         this.customCategories = this.customCategories.filter(c => c !== name);
-                        localStorage.setItem('p_custom_cats', JSON.stringify(this.customCategories));
+                        this.saveData();
                         if (this.activeCategory === name) this.activeCategory = 'all';
                     }
                 },
@@ -232,70 +281,54 @@
                 moveToFolder(logId, folderName) {
                     const idx = this.logs.findIndex(l => l.id === logId);
                     this.logs[idx].folder = folderName;
-                    localStorage.setItem('p_logs', JSON.stringify(this.logs));
-                },
-
-                updateEngines() {
-                    try {
-                        this.searchEngines = JSON.parse(this.engineConfigStr);
-                        this.currentEngine = this.searchEngines[0];
-                    } catch(e) { alert('JSON 格式错误'); }
+                    this.saveData();
                 },
 
                 handleExecute() {
                     if (!this.userInput.trim() && !this.pendingImage) return;
-
                     if (!this.currentEngine.url) {
                         let contentType = 'text';
                         const urlPattern = /^(https?:\/\/|www\.)\S+/i;
-                        
                         if (this.pendingImage) contentType = 'image';
                         else if (urlPattern.test(this.userInput.trim())) contentType = 'url';
-
                         const newEntry = {
-                            id: Date.now(), 
-                            text: this.userInput, 
-                            image: this.pendingImage,
-                            type: contentType,
-                            folder: null, // 初始化文件夹为空
-                            time: new Date().toLocaleTimeString(), 
-                            isPinned: false
+                            id: Date.now(), text: this.userInput, image: this.pendingImage,
+                            type: contentType, folder: null, time: new Date().toLocaleTimeString(), isPinned: false
                         };
                         this.logs = [newEntry, ...this.logs];
-                        localStorage.setItem('p_logs', JSON.stringify(this.logs));
+                        this.saveData();
                     } else {
-                        const searchUrl = this.currentEngine.url + encodeURIComponent(this.userInput);
-                        window.open(searchUrl, '_blank');
+                        window.open(this.currentEngine.url + encodeURIComponent(this.userInput), '_blank');
                     }
                     this.userInput = ''; this.pendingImage = null;
                 },
 
                 sortedLogs() {
                     let list = this.logs;
-
-                    // 核心修改：判断是系统类型过滤还是自定义文件夹过滤
                     const systemTypes = ['all', 'text', 'url', 'image'];
                     if (systemTypes.includes(this.activeCategory)) {
-                        if (this.activeCategory !== 'all') {
-                            list = list.filter(l => l.type === this.activeCategory);
-                        }
+                        if (this.activeCategory !== 'all') list = list.filter(l => l.type === this.activeCategory);
                     } else {
-                        // 如果选中的不在系统类型里，就是自定义文件夹 ID
                         list = list.filter(l => l.folder === this.activeCategory);
                     }
-
                     if (this.searchQuery.trim()) {
                         const q = this.searchQuery.toLowerCase();
                         list = list.filter(l => l.text.toLowerCase().includes(q));
                     }
-
                     return list.sort((a, b) => (a.isPinned === b.isPinned) ? b.id - a.id : (a.isPinned ? -1 : 1));
                 },
 
                 togglePin(id) {
                     const idx = this.logs.findIndex(l => l.id === id);
                     this.logs[idx].isPinned = !this.logs[idx].isPinned;
-                    localStorage.setItem('p_logs', JSON.stringify(this.logs));
+                    this.saveData();
+                },
+
+                updateEngines() {
+                    try {
+                        this.searchEngines = JSON.parse(this.engineConfigStr);
+                        this.currentEngine = this.searchEngines[0];
+                    } catch(e) { alert('JSON Error'); }
                 },
 
                 handleImg(e) {
