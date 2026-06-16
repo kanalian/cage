@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TXT 批量处理工具</title>
+  <style>
+
+    :root{--bg:#f6f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb;--primary:#2563eb;--primary-dark:#1d4ed8;--danger:#dc2626;--ok:#059669;--shadow:0 10px 30px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1180px;margin:0 auto;padding:28px 18px 46px}
+    .hero{display:grid;gap:10px;margin-bottom:22px}
+    h1{margin:0;font-size:clamp(28px,4vw,44px);letter-spacing:-.04em}
+    .subtitle{margin:0;color:var(--muted);line-height:1.7;max-width:860px}
+    .grid{display:grid;grid-template-columns:380px 1fr;gap:18px;align-items:stretch}
+    .grid>.card{height:100%}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+    .card h2{margin:0 0 14px;font-size:18px}
+    .dropzone{border:2px dashed #cbd5e1;border-radius:16px;padding:22px;text-align:center;background:#f8fafc;transition:.2s}
+    .dropzone.dragover{border-color:var(--primary);background:#eff6ff}
+    .file-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    label.button,button{display:inline-flex;justify-content:center;align-items:center;gap:8px;border:0;border-radius:12px;padding:11px 14px;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;transition:.15s;text-decoration:none;font-size:14px;min-height:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    label.button:hover,button:hover{background:var(--primary-dark);transform:translateY(-1px)}
+    button.secondary,label.button.secondary{background:#111827}
+    button.ghost{background:#eef2ff;color:#3730a3}
+    button.danger{background:#fee2e2;color:var(--danger)}
+    button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    input[type=file]{display:none}
+    .options{display:grid;gap:12px;margin-top:16px}
+    .option{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:center;padding:11px;border:1px solid var(--border);border-radius:12px;background:#fff}
+    .option span{display:block;font-weight:700}
+    .option small,.hint{color:var(--muted);font-size:13px;line-height:1.6}
+    .summary{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+    .stat{padding:14px;border-radius:14px;background:#f8fafc;border:1px solid var(--border);min-width:0}
+    .stat b{display:block;font-size:24px;margin-bottom:2px}
+    .stat span{color:var(--muted);font-size:13px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .preview-toolbar{margin-top:10px}
+    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:#fff;-webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse;min-width:840px;background:#fff}
+    th,td{padding:12px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle;font-size:14px}
+    th{background:#f9fafb;color:#374151;font-size:13px}
+    tr:last-child td{border-bottom:0}
+    .badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:#ecfdf5;color:var(--ok);font-size:12px;font-weight:700;max-width:100%;word-break:break-word}
+    .error{background:#fef2f2;color:var(--danger)}
+    .preview{margin-top:16px;display:grid;gap:10px}
+    textarea{display:block;width:100%;min-height:320px;resize:vertical;padding:14px;border-radius:14px;border:1px solid var(--border);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;line-height:1.65;background:#0f172a;color:#e5e7eb;font-size:14px}
+    .row-actions{display:flex;flex-wrap:wrap;gap:8px}
+    .row-actions button{flex:1 1 auto}
+
+    @media(max-width:900px){
+      .grid{grid-template-columns:1fr}
+      .grid>.card{height:auto}
+      .summary{grid-template-columns:repeat(2,1fr)}
+    }
+
+    @media(max-width:640px){
+      .wrap{padding:14px 12px 24px}
+      .hero{margin-bottom:16px}
+      h1{font-size:28px}
+      .subtitle{font-size:14px}
+      .card{padding:14px;border-radius:16px}
+      .card h2{font-size:17px}
+      .dropzone{padding:16px}
+      .file-actions,.toolbar,.preview-toolbar{display:grid;grid-template-columns:1fr;gap:10px}
+      .toolbar>*{width:100%}
+      label.button,button{width:100%;font-size:15px;padding:12px 14px}
+      .option{padding:12px}
+      .summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .stat{padding:12px}
+      .stat b{font-size:22px}
+      .table-wrap{overflow:visible;border:0;background:transparent}
+      table{min-width:0;background:transparent}
+      thead{display:none}
+      tbody{display:grid;gap:12px}
+      tbody tr{display:block;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+      tbody tr.empty-row{padding:0}
+      tbody tr.empty-row td{display:block;border:0;padding:14px;text-align:left}
+      tbody tr.empty-row td::before{content:none}
+      tbody td{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);text-align:right;min-width:0;overflow-wrap:anywhere}
+      tbody td::before{content:attr(data-label);font-weight:700;color:#374151;text-align:left;flex:0 0 78px}
+      tbody td:first-child{display:block;text-align:left;font-weight:700}
+      tbody td:first-child::before{display:block;margin-bottom:6px}
+      tbody td:last-child{border-bottom:0}
+      tbody td:last-child::before{display:block;margin-bottom:8px}
+      .row-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .row-actions button{width:100%}
+      textarea{min-height:52vh;font-size:15px;padding:12px}
+    }
+
+    @media(max-width:420px){
+      .summary{grid-template-columns:1fr}
+      .row-actions{grid-template-columns:1fr}
+      tbody td::before{flex-basis:68px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>TXT 批量处理工具</h1>
+      <p class="subtitle">选择 TXT 文件或整个文件夹，在浏览器本地完成处理。不会上传文件，也不会覆盖原文件；处理完成后手动下载新文件。</p>
+    </section>
+    <section class="grid">
+      <aside class="card">
+        <h2>1. 选择文件</h2>
+        <div id="dropzone" class="dropzone">
+          <p><strong>拖入 TXT 文件</strong></p>
+          <p class="hint">或点击下面按钮选择文件/文件夹</p>
+          <div class="file-actions">
+            <label class="button" for="fileInput">选择 TXT</label>
+            <label class="button secondary" for="folderInput">选择文件夹</label>
+          </div>
+          <input id="fileInput" type="file" accept=".txt,text/plain" multiple />
+          <input id="folderInput" type="file" accept=".txt,text/plain" webkitdirectory directory multiple />
+        </div>
+        <h2 style="margin-top:18px">2. 处理选项</h2>
+        <div class="options">
+          <label class="option"><input id="optIntro" type="checkbox" checked /><div><span>简介规则</span></div></label>
+          <label class="option"><input id="optBody" type="checkbox" checked /><div><span>正文拆分</span></div></label>
+          <label class="option"><input id="optJoinBroken" type="checkbox" checked /><div><span>拆句续接</span></div></label>
+          <label class="option"><input id="optStats" type="checkbox" checked /><div><span>统计字数</span></div></label>
+        </div>
+        <div class="toolbar" style="margin-top:16px"><button id="processBtn" disabled>开始处理</button><button id="clearBtn" class="danger" disabled>清空</button></div>
+        <p id="fileHint" class="hint">尚未选择文件。</p>
+      </aside>
+      <section class="card">
+        <h2>3. 处理结果</h2>
+        <div class="summary">
+          <div class="stat"><b id="statFiles">0</b><span>文件数</span></div>
+          <div class="stat"><b id="statOk">0</b><span>成功</span></div>
+          <div class="stat"><b id="statChars">0</b><span>总字数</span></div>
+          <div class="stat"><b id="statChapters">0</b><span>总章数</span></div>
+          <div class="stat"><b id="statErrors">0</b><span>失败</span></div>
+        </div>
+        <div class="toolbar"><button id="downloadAllBtn" class="ghost" disabled>逐个下载全部结果</button></div>
+        <div class="table-wrap"><table><thead><tr><th>文件名</th><th>状态</th><th>原字数</th><th>处理后字数</th><th>章数</th><th>操作</th></tr></thead><tbody id="resultBody"><tr><td colspan="6" class="hint">处理后会在这里显示结果。</td></tr></tbody></table></div>
+        <div class="preview">
+          <h2>预览 / 编辑</h2>
+          <p id="previewTitle" class="hint">点击某个结果的“预览”，可直接在下方编辑。编辑后点“保存编辑到结果”，再下载。</p>
+          <textarea id="previewBox" placeholder="处理后的文本预览会显示在这里，也可以直接编辑"></textarea>
+          <div class="toolbar preview-toolbar"><button id="applyEditBtn" class="ghost" disabled>保存编辑到结果</button><button id="downloadEditedBtn" disabled>下载当前编辑</button></div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script>
+    const state={files:[],results:[],currentIndex:null};
+    const $=(id)=>document.getElementById(id);
+    const fileInput=$("fileInput"),folderInput=$("folderInput"),dropzone=$("dropzone"),processBtn=$("processBtn"),clearBtn=$("clearBtn"),downloadAllBtn=$("downloadAllBtn"),applyEditBtn=$("applyEditBtn"),downloadEditedBtn=$("downloadEditedBtn"),fileHint=$("fileHint"),resultBody=$("resultBody"),previewBox=$("previewBox"),previewTitle=$("previewTitle");
+
+    fileInput.addEventListener("change",(e)=>addFiles(e.target.files));
+    folderInput.addEventListener("change",(e)=>addFiles(e.target.files));
+    processBtn.addEventListener("click",processSelectedFiles);
+    clearBtn.addEventListener("click",clearAll);
+    downloadAllBtn.addEventListener("click",downloadAllResults);
+    applyEditBtn.addEventListener("click",savePreviewEdit);
+    downloadEditedBtn.addEventListener("click",downloadPreviewEdit);
+    dropzone.addEventListener("dragover",(e)=>{e.preventDefault();dropzone.classList.add("dragover")});
+    dropzone.addEventListener("dragleave",()=>dropzone.classList.remove("dragover"));
+    dropzone.addEventListener("drop",(e)=>{e.preventDefault();dropzone.classList.remove("dragover");addFiles(e.dataTransfer.files)});
+
+    function addFiles(fileList){
+      const incoming=Array.from(fileList).filter((file)=>file.name.toLowerCase().endsWith(".txt"));
+      const seen=new Set(state.files.map(fileKey));
+      incoming.forEach((file)=>{const key=fileKey(file);if(!seen.has(key)){state.files.push(file);seen.add(key)}});
+      updateFileState();
+    }
+    function fileKey(file){return file.name+"::"+file.size+"::"+file.lastModified}
+    function updateFileState(){const count=state.files.length;fileHint.textContent=count?`已选择 ${count} 个 TXT 文件。`:"尚未选择文件。";processBtn.disabled=!count;clearBtn.disabled=!count&&!state.results.length;$("statFiles").textContent=String(count)}
+
+    async function processSelectedFiles(){
+      state.results=[];state.currentIndex=null;previewBox.value="";previewTitle.textContent="点击某个结果的“预览”，可直接在下方编辑。编辑后点“保存编辑到结果”，再下载。";applyEditBtn.disabled=true;downloadEditedBtn.disabled=true;renderResults(true);
+      for(const file of state.files){
+        try{
+          const input=await readTextSmart(file);
+          const output=processText(input,getOptions());
+          state.results.push({fileName:file.webkitRelativePath||file.name,outputName:buildOutputName(file.name),status:"ok",input,output,inputChars:countChars(input),outputChars:countChars(output),chapterCount:countChapters(output),error:""});
+        }catch(error){
+          state.results.push({fileName:file.webkitRelativePath||file.name,outputName:buildOutputName(file.name),status:"error",input:"",output:"",inputChars:0,outputChars:0,chapterCount:0,error:error&&error.message?error.message:String(error)});
+        }
+      }
+      renderResults(false);
+    }
+    function getOptions(){return{intro:$("optIntro").checked,body:$("optBody").checked,joinBroken:$("optJoinBroken").checked,stats:$("optStats").checked}}
+    async function readTextSmart(file){const buffer=await file.arrayBuffer();for(const encoding of ["utf-8","gb18030","gbk"]){try{return new TextDecoder(encoding,{fatal:true}).decode(buffer)}catch(error){}}return new TextDecoder("utf-8",{fatal:false}).decode(buffer)}
+
+    function processText(text,options){let content=normalizeNewlines(text);if(options.intro){content=cleanIntroStrict(content);content=dedupeIntroArea(content);content=cleanCrawlerRepeats(content)}if(options.body){content=removeExtraBlankLines(content);content=addBlankLinesBeforeChapters(content)}if(options.joinBroken){content=joinBrokenSentences(content)}if(options.intro){content=cleanCrawlerRepeats(content)}return content.trim()+"\n"}
+    function removeExtraBlankLines(content){return normalizeNewlines(content).replace(/\n\s*\n/g,"\n").replace(/\n{3,}/g,"\n\n")}
+    function normalizeNewlines(text){return String(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n")}
+    function isChapterTitleLine(line){
+      const text=String(line||"").trim();
+      if(!text)return false;
+
+      // 中文章节：第一章、第一章：标题、第一章 标题、第1章等
+      if(/^第[零〇一二两三四五六七八九十百千万0-9]+[章节卷回幕部集段]([ 	　]*[:：、.-]?[ 	　]*.*)?$/.test(text))return true;
+
+      // 单独中文数字章节：一、二、十、十一、二十一等。阿拉伯数字单独一行仍不识别。
+      if(/^[一二两三四五六七八九十百千万]+$/.test(text))return true;
+
+      // 英文章节：Chapter 1、chapter 1: title、Ch. 1 等
+      if(/^(chapter|chap[.]?|ch[.]?)[ 	　]*[0-9ivxlcdm]+([ 	　]*[:：、.-]?[ 	　]*.*)?$/i.test(text))return true;
+
+      // 番外章节：番外、番外1、番外 1、番外一、番外 xxx、番外：xxx
+      if(/^番外(?:篇)?(?:[ \t　]*(?:[0-9]+|[零〇一二两三四五六七八九十百千万]+|[A-Za-z]+|[ivxlcdm]+))?(?:[ \t　]*[:：、.-]?[ \t　]*.{0,80})?$/i.test(text))return true;
+
+      // 数字加标题：1：标题、1 标题、12 - 标题。单独数字行不识别。
+      if(/^[1-9][0-9]{0,3}([ 	　]*[:：、.-][ 	　]*.+|[ 	　]+.+)$/.test(text))return true;
+
+      return false;
+    }
+    function isIntroLine(line){return /^\s*简介\s*[：:︰]/.test(line||"")}
+    function markerMatchAtLineStart(line){return String(line||"").match(/^\s*(文案|简介)\s*[：:︰]/)}
+
+    function cleanIntroStrict(content){
+      const lines=normalizeNewlines(content).split("\n");
+      if(lines.length<3)return content;
+      const title=lines[0].trimEnd();
+      const author=lines[1].trimEnd();
+      const third=lines[2]||"";
+      const firstIntro=third.match(/^\s*简介\s*[：:︰]/);
+      if(!firstIntro)return content;
+      const introLabel=firstIntro[0].trimEnd();
+      const afterFirst=third.slice(firstIntro[0].length);
+      let bodyLines=[];
+      let restLines=[];
+      let found=false;
+      const sameLine=afterFirst.match(/(?:^|[\s　]+)(文案|简介)\s*[：:︰]/);
+      if(sameLine){
+        const rest=afterFirst.slice(sameLine.index+sameLine[0].length).trim();
+        if(rest)bodyLines.push(rest);
+        restLines=lines.slice(3);
+        found=true;
+      }
+      if(!found){
+        for(let i=3;i<lines.length;i++){
+          const m=markerMatchAtLineStart(lines[i]);
+          if(m){
+            const rest=lines[i].slice(m[0].length).trim();
+            if(rest)bodyLines.push(rest);
+            restLines=lines.slice(i+1);
+            found=true;
+            break;
+          }
+        }
+      }
+      if(!found)return content;
+      while(restLines.length&&restLines[0].trim()==="")restLines.shift();
+      const chapterIndex=restLines.findIndex(isChapterTitleLine);
+      const introRest=chapterIndex>=0?restLines.slice(0,chapterIndex):restLines;
+      const chapterAndBody=chapterIndex>=0?restLines.slice(chapterIndex):[];
+      let introLines=bodyLines.concat(removeLeadingMetaLines(introRest,title,author));
+      introLines=dedupeIntroLinesKeepSecond(introLines);
+      const output=[title,author,introLabel];
+      const introText=introLines.join("\n").trim();
+      if(introText)output.push(normalizeIntroIndent(introText));
+      if(chapterAndBody.length)output.push("","",...chapterAndBody);
+      return output.join("\n");
+    }
+
+    function dedupeIntroArea(content){
+      const lines=normalizeNewlines(content).split("\n");
+      const introIndex=lines.findIndex(isIntroLine);
+      if(introIndex<0)return content;
+      let end=lines.length;
+      for(let i=introIndex+1;i<lines.length;i++){if(isChapterTitleLine(lines[i])){end=i;break}}
+      const before=lines.slice(0,introIndex+1);
+      let area=lines.slice(introIndex+1,end);
+      const after=lines.slice(end);
+      area=dedupeIntroLinesKeepSecond(area);
+      while(area.length&&area[0].trim()==="")area.shift();
+      while(area.length&&area[area.length-1].trim()==="")area.pop();
+      const rebuilt=before.concat(area);
+      if(after.length){while(rebuilt.length&&rebuilt[rebuilt.length-1].trim()==="")rebuilt.pop();rebuilt.push("","",...after)}
+      return rebuilt.join("\n");
+    }
+
+    function cleanCrawlerRepeats(content){
+      let lines=removeCrawlerJunkLines(normalizeNewlines(content).split("\n"));
+      for(let pass=0;pass<12;pass++){
+        const block=findLargeRepeatedLineBlock(lines);
+        if(!block)break;
+        const start=expandDuplicateRemovalStart(lines,block.start);
+        const end=expandDuplicateRemovalEnd(lines,block.end);
+        lines=lines.filter((_,idx)=>idx<start||idx>end);
+        lines=removeCrawlerJunkLines(lines);
+      }
+      return lines.join("\n");
+    }
+
+    function removeCrawlerJunkLines(lines){
+      return lines.filter((line)=>!isCrawlerJunkLine(line));
+    }
+
+    function isCrawlerJunkLine(line){
+      const text=normalizeSpaces(line).trim();
+      if(!text)return false;
+
+      // 翻页导航：1/16  1 2 3 4 5 6  下一页  尾页
+      if(/^\d+\s*\/\s*\d+(?:\s+\d+){1,20}(?:\s+(?:首页|上一页|下一页|尾页)){0,6}$/.test(text))return true;
+
+      // 翻页导航：上一页 1 2 3 下一页
+      if(/^(?:首页\s+)?(?:上一页\s+)?\d+(?:\s+\d+){1,20}(?:\s+下一页)?(?:\s+尾页)?$/.test(text)&&/\d+\s+\d+/.test(text))return true;
+
+      // 目录/采集站页脚常见形态：书名——作者书名——作者(2)... 连在同一行
+      const dashCount=(text.match(/——/g)||[]).length;
+      const pageCount=(text.match(/[（(]\d+[）)]/g)||[]).length;
+      if(text.length>80&&dashCount>=3&&pageCount>=2)return true;
+
+      // 同一行重复出现多个“下一页/尾页/首页”等导航词，也视为垃圾导航。
+      const navCount=(text.match(/首页|上一页|下一页|尾页/g)||[]).length;
+      if(text.length<160&&navCount>=2&&/\d/.test(text))return true;
+
+      return false;
+    }
+
+    function findLargeRepeatedLineBlock(lines){
+      const entries=[];
+      for(let i=0;i<lines.length;i++){
+        const key=normalizeRepeatKey(lines[i]);
+        if(key)entries.push({idx:i,key});
+      }
+      if(entries.length<16)return null;
+
+      const positions=new Map();
+      let best=null;
+      for(let b=0;b<entries.length;b++){
+        const list=positions.get(entries[b].key)||[];
+        let checked=0;
+        for(let p=list.length-1;p>=0&&checked<12;p--,checked++){
+          const a=list[p];
+          let len=0;
+          let keyChars=0;
+          while(a+len<b&&b+len<entries.length&&entries[a+len].key===entries[b+len].key){
+            keyChars+=entries[b+len].key.length;
+            len++;
+          }
+          if(len>=8&&keyChars>=120){
+            const span=entries[b+len-1].idx-entries[b].idx+1;
+            const score=len*100000+keyChars-span;
+            if(!best||score>best.score){best={start:entries[b].idx,end:entries[b+len-1].idx,score,len,keyChars};}
+          }
+        }
+        list.push(b);
+        if(list.length>30)list.shift();
+        positions.set(entries[b].key,list);
+      }
+      return best;
+    }
+
+    function normalizeRepeatKey(line){
+      if(isCrawlerJunkLine(line))return"";
+      const key=normalizeIntroKey(line);
+      if(key.length<2)return"";
+      return key;
+    }
+
+    function expandDuplicateRemovalStart(lines,start){
+      let s=start;
+
+      // 如果重复块前面紧贴“书名/作者/简介”等二次页头，把这个页头一起删掉。
+      const headerStart=findHeaderStartBeforeDuplicate(lines,s);
+      if(headerStart!==null)s=headerStart;
+
+      // 再向前吞掉采集站翻页/空行，避免留下孤立空白或页码。
+      while(s>0&&(isBlankLine(lines[s-1])||isCrawlerJunkLine(lines[s-1])))s--;
+      return s;
+    }
+
+    function findHeaderStartBeforeDuplicate(lines,start){
+      const lower=Math.max(0,start-45);
+      let marker=-1;
+      for(let i=start;i>=lower;i--){
+        if(i<0||i>=lines.length)continue;
+        const text=normalizeSpaces(lines[i]).trim();
+        if(!text||isCrawlerJunkLine(text))continue;
+        if(i<start&&isChapterTitleLine(text))break;
+        if(isAuthorLine(text)||isIntroLine(text)){marker=i;break;}
+      }
+      if(marker<0)return null;
+
+      let s=marker;
+      while(s>0&&(isBlankLine(lines[s-1])||isCrawlerJunkLine(lines[s-1])))s--;
+      if(s>0&&looksLikeNovelTitleLine(lines[s-1]))s--;
+      while(s>0&&(isBlankLine(lines[s-1])||isCrawlerJunkLine(lines[s-1])))s--;
+      return s;
+    }
+
+    function expandDuplicateRemovalEnd(lines,end){
+      let e=end;
+      while(e+1<lines.length&&(isBlankLine(lines[e+1])||isCrawlerJunkLine(lines[e+1])))e++;
+      return e;
+    }
+
+    function isBlankLine(line){return String(line||"").trim()===""}
+    function normalizeSpaces(line){return String(line||"").replace(/\u00a0/g," ").replace(/[ \t　]+/g," ")}
+    function isAuthorLine(line){return /^\s*作者\s*[：:︰]/.test(line||"")}
+    function looksLikeNovelTitleLine(line){
+      const text=normalizeSpaces(line).trim();
+      if(!text||text.length>60)return false;
+      if(isChapterTitleLine(text)||isGuideOrMetaLine(text)||isAuthorLine(text)||isIntroLine(text))return false;
+      if(/[。！？!?，,；;：:]$/.test(text))return false;
+      if(/^[-*•●○]/.test(text))return false;
+      if(/^\d+\s*\/\s*\d+/.test(text))return false;
+      return true;
+    }
+
+    function removeLeadingMetaLines(lines,title,author){
+      const titleKey=normalizeIntroKey(title),authorKey=normalizeIntroKey(author),out=[];
+      for(const raw of lines){
+        const line=raw.trimEnd();
+        const key=normalizeIntroKey(line);
+        if(!key){out.push(line);continue}
+        if(key===titleKey||key===authorKey)continue;
+        if(/^\s*(作者|类型|文案|简介)\s*[：:︰]/.test(line))continue;
+        out.push(line);
+      }
+      return out;
+    }
+
+    function dedupeIntroLinesKeepSecond(lines){
+      const entries=[];
+      for(let i=0;i<lines.length;i++){const key=normalizeIntroKey(lines[i]);if(key)entries.push({idx:i,key})}
+      const collapsedIndex=findCollapsedDuplicateLongLine(lines,entries);
+      if(collapsedIndex!==-1)return lines.filter((_,idx)=>idx!==collapsedIndex);
+      if(entries.length>=6){
+        let best=null;
+        for(let a=0;a<entries.length;a++){
+          for(let b=a+1;b<entries.length;b++){
+            if(entries[a].key!==entries[b].key)continue;
+            let len=0;
+            while(a+len<entries.length&&b+len<entries.length&&entries[a+len].key===entries[b+len].key){len++}
+            if(len>=3){
+              const span=entries[a+len-1].idx-entries[a].idx+1;
+              const score=len*1000-span;
+              if(!best||score>best.score)best={a,b,len,score};
+            }
+          }
+        }
+        if(best){
+          const startRemove=entries[best.a].idx;
+          const endRemove=entries[best.a+best.len-1].idx;
+          return lines.filter((_,idx)=>idx<startRemove||idx>endRemove);
+        }
+      }
+      const out=[];
+      for(const line of lines){
+        const k=normalizeIntroKey(line);
+        const prev=out.length?normalizeIntroKey(out[out.length-1]):"";
+        if(k&&prev&&k===prev)out[out.length-1]=line;else out.push(line);
+      }
+      return out;
+    }
+
+    function findCollapsedDuplicateLongLine(lines,entries){
+      for(let a=0;a<entries.length-1;a++){
+        const longKey=entries[a].key;
+        if(longKey.length<30)continue;
+
+        let combined="";
+        let count=0;
+
+        for(let b=a+1;b<entries.length&&count<10;b++){
+          combined+=entries[b].key;
+          count++;
+
+          if(count>=2&&combined.length>=Math.min(20,longKey.length)){
+            if(combined.startsWith(longKey)||longKey.startsWith(combined)){
+              return entries[a].idx;
+            }
+
+            const minLen=Math.min(longKey.length,combined.length);
+            let same=0;
+            while(same<minLen&&longKey[same]===combined[same])same++;
+            if(same>=30&&same/minLen>=0.85){
+              return entries[a].idx;
+            }
+          }
+        }
+      }
+      return -1;
+    }
+
+    function normalizeIntroKey(line){
+      const punctuation=new Set(Array.from("。！？!?,，、；;：:.．…—–-~～“”\"'‘’（）()【】[]《》<>*·"));
+      return Array.from(String(line||"").normalize("NFKC").toLowerCase()).filter((ch)=>{
+        const code=ch.charCodeAt(0);
+        if(code===65279||code===8203||code===8204||code===8205)return false;
+        if(ch==="　")return false;
+        if(/\s/.test(ch))return false;
+        if(punctuation.has(ch))return false;
+        return true;
+      }).join("");
+    }
+    function normalizeIntroIndent(text){return String(text||"").split("\n").map((line)=>{const right=line.trimEnd();if(!right.trim())return"";return"　　"+right.replace(/^[\s　]+/,"")}).join("\n")}
+    function addBlankLinesBeforeChapters(content){const lines=normalizeNewlines(content).split("\n"),out=[];for(const line of lines){if(isChapterTitleLine(line)&&out.length){while(out.length&&out[out.length-1].trim()==="")out.pop();out.push("","")}out.push(line)}return out.join("\n")}
+
+    function joinBrokenSentences(content){
+      const lines=normalizeNewlines(content).split("\n");
+      const firstChapterIndex=lines.findIndex(isChapterTitleLine);
+      const out=[];
+      for(let i=0;i<lines.length;i++){
+        let line=lines[i];
+        if(!line.trim()){out.push(line);continue}
+        if(shouldSkipJoinLine(line,i,lines,firstChapterIndex)){out.push(line);continue}
+        while(i+1<lines.length){
+          const next=lines[i+1];
+          if(!next.trim())break;
+          if(firstChapterIndex>=0&&i<firstChapterIndex)break;
+          if(isChapterTitleLine(line))break;
+          if(isChapterTitleLine(next))break;
+          if(shouldSkipJoinLine(next,i+1,lines,firstChapterIndex))break;
+          if(shouldJoinWithNext(line,next)){line=joinTwoLines(line,next);i++}else break;
+        }
+        out.push(line);
+      }
+      return out.join("\n");
+    }
+
+    function shouldJoinWithNext(line,next){
+      const current=String(line||"").trimEnd();
+      const nextText=String(next||"").trimStart();
+      if(!current||!nextText)return false;
+      if(isGuideOrMetaLine(current)||isGuideOrMetaLine(nextText))return false;
+      if(hasUnclosedPairs(current))return true;
+      if(/[，,、：:；;—\-～~]$/.test(current))return true;
+      if(/(……|…)$/.test(current))return true;
+      if(!/[。！？!?]$/.test(removeClosingMarks(current))&&!looksLikeNewParagraph(next))return true;
+      return false;
+    }
+
+    function joinTwoLines(a,b){
+      const left=String(a||"").trimEnd();
+      const right=String(b||"").trimStart();
+      if(/[A-Za-z0-9]$/.test(left)&&/^[A-Za-z0-9]/.test(right))return left+" "+right;
+      return left+right;
+    }
+
+    function removeClosingMarks(text){return String(text||"").replace(/[”’」』）)】》]+$/g,"")}
+
+    function shouldSkipJoinLine(line,index,lines,firstChapterIndex){
+      const text=String(line||"").trim();
+      const third=lines&&lines.length>2?String(lines[2]||""):"";
+      if(index<2&&isIntroLine(third))return true;
+
+      // 有章节标题时，章节前通常是书名、作者、简介、阅读指南、Tag 等信息，不做拆句续接，避免把元信息拼成一行。
+      if(firstChapterIndex>=0&&index<firstChapterIndex)return true;
+
+      if(isChapterTitleLine(text))return true;
+      if(isGuideOrMetaLine(text))return true;
+      if(looksLikeStandaloneHeading(text))return true;
+      return false;
+    }
+
+    function shouldNotJoinCurrent(line,index,lines){
+      const firstChapterIndex=lines?lines.findIndex(isChapterTitleLine):-1;
+      return shouldSkipJoinLine(line,index,lines,firstChapterIndex);
+    }
+
+    function shouldNotJoinNext(line){
+      const text=String(line||"").trim();
+      if(isGuideOrMetaLine(text))return true;
+      if(/^[-*•●○]\s+/.test(text))return true;
+      if(/^[0-9]+[.、)]\s*/.test(text))return true;
+      return false;
+    }
+
+    function isGuideOrMetaLine(line){
+      const text=String(line||"").trim();
+      if(!text)return false;
+
+      // 简介区和小说常见元信息
+      if(/^(简介|文案|作者|类型|标签|标签列表|Tag列表|Tag|Tags|书名|CP|cp|主角|配角|阅读指南|阅前指南|排雷|预警|注意|备注)\s*[：:︰]/.test(text))return true;
+
+      // 独立 Markdown 加粗说明，例如 **阅读指南**、**三观不正...**
+      if(/^\*\*[^*]{1,120}\*\*$/.test(text))return true;
+
+      // 独立括号/书名号标题
+      if(/^【[^】]{1,40}】$/.test(text))return true;
+      if(/^《[^》]{1,40}》$/.test(text))return true;
+
+      // CP/人物关系行，例如：屈温×屈漓、A x B、A/B
+      if(/^[^\s，。！？；：、]{1,24}\s*[×xX&／/]\s*[^\s，。！？；：、]{1,24}$/.test(text))return true;
+
+      return false;
+    }
+
+    function looksLikeStandaloneHeading(line){
+      const text=String(line||"").trim();
+      if(!text)return false;
+      if(text.length>40)return false;
+      if(/[。！？!?，,；;：:]$/.test(text))return false;
+      if(/^[第]?[零〇一二两三四五六七八九十百千万0-9]+[章节卷回幕部集段]/.test(text))return true;
+      if(/^(序章|楔子|番外|后记|尾声|前言|正文|简介|阅读指南)$/i.test(text))return true;
+      return false;
+    }
+
+    function looksLikeNewParagraph(text){
+      const raw=String(text||"");
+      const t=raw.trim();
+
+      // 下一行已有段首缩进，通常是新段落，不拼接。
+      if(/^[\s　]{2,}\S/.test(raw))return true;
+
+      // 对话开头，通常保留为新段落
+      if(/^["“「『]/.test(t))return true;
+
+      // 常见新段落提示词，偏保守
+      if(/^(然而|但是|可是|于是|随后|接着|第二天|与此同时|另一边)/.test(t))return true;
+
+      return false;
+    }
+
+    function hasUnclosedPairs(text){
+      const t=String(text||"");
+      const pairs=[["（","）"],["(",")"],["【","】"],["[","]"],["《","》"],["〈","〉"],["“","”"],["‘","’"],["「","」"],["『","』"]];
+      for(const pair of pairs){if(countChar(t,pair[0])>countChar(t,pair[1]))return true}
+      const quoteCount=(t.match(/"/g)||[]).length;
+      if(quoteCount%2===1)return true;
+      return false;
+    }
+
+    function countChar(text,char){return Array.from(String(text||"")).filter((c)=>c===char).length}
+    function countChars(text){return(String(text).match(/\S/g)||[]).length}
+    function countChapters(text){return normalizeNewlines(text).split("\n").filter(isChapterTitleLine).length}
+    function buildOutputName(name){return name.replace(/\.txt$/i,"")+"（）.txt"}
+
+    function renderResults(loading){
+      if(loading){resultBody.innerHTML='<tr class="empty-row"><td colspan="6" class="hint">正在处理，请稍候……</td></tr>';setStats();return}
+      if(!state.results.length){resultBody.innerHTML='<tr class="empty-row"><td colspan="6" class="hint">处理后会在这里显示结果。</td></tr>';setStats();return}
+      resultBody.innerHTML=state.results.map((item,index)=>{
+        const status=item.status==="ok"?'<span class="badge">成功</span>':`<span class="badge error">失败：${escapeHtml(item.error)}</span>`;
+        const action=item.status==="ok"?`<div class="row-actions"><button class="ghost" onclick="previewResult(${index})">预览</button><button onclick="downloadResult(${index})">下载</button></div>`:"-";
+        return `<tr><td data-label="文件名">${escapeHtml(item.fileName)}</td><td data-label="状态">${status}</td><td data-label="原字数">${item.inputChars.toLocaleString()}</td><td data-label="处理后字数">${item.outputChars.toLocaleString()}</td><td data-label="章数">${Number(item.chapterCount||0).toLocaleString()}</td><td data-label="操作">${action}</td></tr>`;
+      }).join("");
+      setStats();downloadAllBtn.disabled=!state.results.some((item)=>item.status==="ok");clearBtn.disabled=false;
+    }
+    function setStats(){const ok=state.results.filter((item)=>item.status==="ok"),errors=state.results.filter((item)=>item.status==="error"),total=ok.reduce((sum,item)=>sum+item.outputChars,0),chapters=ok.reduce((sum,item)=>sum+(item.chapterCount||0),0);$("statFiles").textContent=String(state.files.length);$("statOk").textContent=String(ok.length);$("statErrors").textContent=String(errors.length);$("statChars").textContent=total.toLocaleString();$("statChapters").textContent=chapters.toLocaleString()}
+    window.previewResult=function(index){const item=state.results[index];state.currentIndex=item&&item.status==="ok"?index:null;previewTitle.textContent=item?`正在预览 / 编辑：${item.fileName}`:"点击某个结果的“预览”。";previewBox.value=item?item.output:"";applyEditBtn.disabled=state.currentIndex===null;downloadEditedBtn.disabled=state.currentIndex===null};
+    window.downloadResult=function(index){const item=state.results[index];if(item&&item.status==="ok")downloadText(item.outputName,item.output)};
+    function savePreviewEdit(){const index=state.currentIndex;if(index===null)return;const item=state.results[index];if(!item||item.status!=="ok")return;item.output=previewBox.value;item.outputChars=countChars(item.output);item.chapterCount=countChapters(item.output);previewTitle.textContent=`已保存编辑：${item.fileName}`;renderResults(false);state.currentIndex=index;applyEditBtn.disabled=false;downloadEditedBtn.disabled=false}
+    function downloadPreviewEdit(){const index=state.currentIndex;if(index===null)return;const item=state.results[index];if(item&&item.status==="ok")downloadText(item.outputName,previewBox.value)}
+    function downloadAllResults(){state.results.filter((item)=>item.status==="ok").forEach((item,index)=>{setTimeout(()=>downloadText(item.outputName,item.output),index*900)})}
+    function safeDownloadName(filename){
+      return String(filename||"处理结果.txt").replace(/[\\/:*?"<>|]+/g,"_");
+    }
+    function downloadText(filename,text){
+      const blob=new Blob([String(text||"")],{type:"text/plain;charset=utf-8"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;
+      a.download=safeDownloadName(filename);
+      a.rel="noopener";
+      a.style.display="none";
+      document.body.appendChild(a);
+
+      // 不能 click 后立刻 revokeObjectURL，否则部分本地浏览器会卡在“正在处理 blob 数据”。
+      requestAnimationFrame(()=>{
+        a.click();
+        setTimeout(()=>{
+          URL.revokeObjectURL(url);
+          a.remove();
+        },60000);
+      });
+    }
+    function clearAll(){state.files=[];state.results=[];state.currentIndex=null;fileInput.value="";folderInput.value="";previewBox.value="";previewTitle.textContent="点击某个结果的“预览”，可直接在下方编辑。编辑后点“保存编辑到结果”，再下载。";applyEditBtn.disabled=true;downloadEditedBtn.disabled=true;downloadAllBtn.disabled=true;renderResults(false);updateFileState()}
+    function escapeHtml(text){return String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;")}
+  </script>
+</body>
+</html>
