@@ -19,7 +19,6 @@
         
         .search-pill { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px; }
         
-        /* 紧凑型数据库操作按钮 */
         .db-action { font-size: 10px; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 4px; transition: opacity 0.2s; cursor: pointer; }
         .db-action:hover { opacity: 0.7; }
         .db-action.import { color: #10b981; } 
@@ -65,12 +64,10 @@
                         <input type="text" x-model="searchQuery" placeholder="Search records..." class="bg-transparent border-none outline-none text-xs w-full text-gray-200 focus:ring-0">
                     </div>
 
-                    <!-- 2. 分类与操作组合行 (消灭了留空) -->
+                    <!-- 2. 分类与操作 -->
                     <div class="flex flex-col gap-4 mb-6">
-                        <!-- 系统分类标题与操作按钮对齐 -->
                         <div class="flex items-center justify-between">
                             <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">System Filters</span>
-                            <!-- 操作按钮移动到这里了 -->
                             <div class="flex gap-4">
                                 <button @click="$refs.importInput.click()" class="db-action import"><i data-lucide="upload" class="w-3 h-3"></i>Import</button>
                                 <input type="file" x-ref="importInput" class="hidden" accept=".json" @change="importHistory">
@@ -79,7 +76,6 @@
                             </div>
                         </div>
 
-                        <!-- 分类按钮 -->
                         <div class="flex flex-wrap gap-2">
                             <button @click="activeCategory = 'all'" :class="activeCategory === 'all' ? 'active' : ''" class="filter-btn">All</button>
                             <button @click="activeCategory = 'text'" :class="activeCategory === 'text' ? 'active' : ''" class="filter-btn">Text</button>
@@ -105,15 +101,39 @@
                     <div class="flex-1 overflow-y-auto pr-2 custom-scroll space-y-3 pb-4">
                         <template x-for="log in sortedLogs()" :key="log.id">
                             <div class="p-3 bg-white/5 rounded-xl border border-white/5 relative group">
-                                <div class="absolute top-3 right-3 flex gap-2">
-                                    <button @click="togglePin(log.id)" class="opacity-0 group-hover:opacity-100 transition" :class="log.isPinned ? 'text-blue-400 opacity-100' : 'text-gray-600'"><i data-lucide="pin" class="w-3 h-3"></i></button>
-                                    <button @click="deleteLog(log.id)" class="opacity-0 group-hover:opacity-100 transition text-gray-600 hover:text-red-400"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                                
+                                <!-- 核心修改：分配到分类的入口 -->
+                                <div class="absolute top-3 right-3 flex gap-2 items-center">
+                                    <div class="relative" x-data="{ open: false }">
+                                        <button @click="open = !open" class="text-gray-500 hover:text-blue-400 transition" title="Assign to Folder">
+                                            <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                        <!-- 下拉选择菜单 -->
+                                        <div x-show="open" @click.away="open = false" class="absolute right-0 top-full mt-1 w-32 glass z-50 rounded-lg py-1 shadow-2xl text-[10px] border border-white/10">
+                                            <button @click="moveToFolder(log.id, null); open = false" class="w-full px-3 py-2 text-left hover:bg-white/10 text-gray-400">Untagged (None)</button>
+                                            <template x-for="cat in customCategories" :key="cat">
+                                                <button @click="moveToFolder(log.id, cat); open = false" class="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2">
+                                                    <i data-lucide="folder" class="w-2 h-2"></i>
+                                                    <span x-text="cat"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <button @click="togglePin(log.id)" :class="log.isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-white'"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                                    <button @click="deleteLog(log.id)" class="text-gray-500 hover:text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                                 </div>
+
                                 <template x-if="log.image"><img :src="log.image" class="w-16 h-16 object-cover rounded mb-2 border border-white/10"></template>
-                                <div class="text-xs text-white/90 break-all pr-12" x-text="log.text"></div>
+                                <div class="text-xs text-white/90 break-all pr-20" x-text="log.text"></div>
                                 <div class="flex items-center gap-2 mt-2">
                                     <span class="text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400 uppercase font-bold" x-text="log.type"></span>
-                                    <template x-if="log.folder"><span class="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase font-bold" x-text="log.folder"></span></template>
+                                    <!-- 显示当前所属分类 -->
+                                    <template x-if="log.folder">
+                                        <span class="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase font-bold flex items-center gap-1">
+                                            <i data-lucide="folder" class="w-2 h-2"></i>
+                                            <span x-text="log.folder"></span>
+                                        </span>
+                                    </template>
                                     <span class="text-[9px] text-gray-500 uppercase tracking-widest" x-text="log.time"></span>
                                 </div>
                             </div>
@@ -133,7 +153,7 @@
                         </div>
                     </template>
                 </div>
-                <button @click="showSettings = false" class="mt-4 w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold">Close Panel</button>
+                <button @click="showSettings = false" class="mt-4 w-full py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-500/20">Close Panel</button>
             </div>
 
             <!-- 主界面 -->
@@ -162,7 +182,7 @@
                         </div>
                         <div class="flex gap-4 text-gray-400 items-center">
                             <input type="file" x-ref="fileInput" class="hidden" accept="image/*" @change="handleImg">
-                            <button @click="$refs.fileInput.click()" class="hover:text-blue-400 transition" :class="pendingImage ? 'text-blue-500' : ''"><i data-lucide="image" class="w-4 h-4"></i></button>
+                            <button @click="$refs.fileInput.click()" class="hover:text-blue-400 transition" :class="pendingImage ? 'text-blue-500' : ''"><i data-lucide="image" class="w-5 h-5"></i></button>
                             <button @click="handleExecute" class="hover:text-blue-400 transition"><i data-lucide="send-horizontal" class="w-4 h-4"></i></button>
                             <button @click="showSettings = true; tab = 'edit'" class="hover:text-white transition"><i data-lucide="settings" class="w-4 h-4"></i></button>
                         </div>
@@ -210,7 +230,9 @@
                 },
 
                 refreshIcons() {
-                    this.$nextTick(() => lucide.createIcons());
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
                 },
 
                 exportHistory() {
@@ -278,10 +300,13 @@
                     }
                 },
 
+                // 分类功能的核心逻辑
                 moveToFolder(logId, folderName) {
                     const idx = this.logs.findIndex(l => l.id === logId);
-                    this.logs[idx].folder = folderName;
-                    this.saveData();
+                    if (idx !== -1) {
+                        this.logs[idx].folder = folderName;
+                        this.saveData();
+                    }
                 },
 
                 handleExecute() {
@@ -309,6 +334,7 @@
                     if (systemTypes.includes(this.activeCategory)) {
                         if (this.activeCategory !== 'all') list = list.filter(l => l.type === this.activeCategory);
                     } else {
+                        // 如果选中的是自定义文件夹
                         list = list.filter(l => l.folder === this.activeCategory);
                     }
                     if (this.searchQuery.trim()) {
