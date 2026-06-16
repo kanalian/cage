@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>GA4 精准正则生成器</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f4f7f9; padding: 20px; color: #333; }
+    .container { max-width: 1000px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .controls { display: flex; flex-wrap: wrap; gap: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid #eee; }
+    .main { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    textarea, .output { width: 100%; height: 350px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: monospace; font-size: 13px; }
+    textarea:focus { outline: 2px solid #4f46e5; border-color: transparent; }
+    .output { background: #1a1a1a; color: #00ff00; word-break: break-all; white-space: pre-wrap; overflow-y: auto; }
+    .btns { display: flex; gap: 10px; margin-top: 10px; }
+    button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: #fff; background: #4f46e5; }
+    button:hover { opacity: 0.9; }
+    .btn-copy { background: #10b981; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h3>精准正则生成器</h3>
+  
+  <div class="controls">
+    <div>模式：<select id="mode">
+      <option value="path">仅路径 (/ja/ai-kiss)</option>
+      <option value="domain">域名+路径 (abc.com/ja/ai-kiss)</option>
+      <option value="full">完整 URL (https://...)</option>
+    </select></div>
+    <label><input type="checkbox" id="mergeIds"> 合并数字ID (\d+)</label>
+    <label><input type="checkbox" id="exact" checked> 精确匹配 (^$)</label>
+    <label><input type="checkbox" id="proto" checked> 包含协议 (https?)</label>
+  </div>
+
+  <div class="main">
+    <div>
+      <textarea id="input" placeholder="每行输入一个 URL..."></textarea>
+      <div class="btns"><button onclick="run()">生成正则</button></div>
+    </div>
+    <div>
+      <div id="output" class="output">等待生成...</div>
+      <div class="btns"><button class="btn-copy" onclick="copy()">复制结果</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  function run() {
+    const input = document.getElementById('input').value.trim();
+    if (!input) return;
+
+    const mode = document.getElementById('mode').value;
+    const mergeIds = document.getElementById('mergeIds').checked;
+    const urls = [...new Set(input.split('\n').map(l => l.trim()).filter(Boolean))];
+    const trie = {};
+
+    urls.forEach(raw => {
+      let host = "ROOT", path = "";
+      try {
+        const u = raw.startsWith('http') ? new URL(raw) : null;
+        if (u) { host = u.hostname; path = u.pathname + u.search; }
+        else if (raw.includes('/') && raw.includes('.')) {
+          const s = raw.split('/'); host = s[0]; path = '/' + s.slice(1).join('/');
+        } else { path = raw.startsWith('/') ? raw : '/' + raw; }
+      } catch(e) { path = raw; }
+
+      let curr = trie[host] || (trie[host] = {});
+      const segs = path.split('/').filter(p => p);
+      if (segs.length === 0) curr.$ = 1;
+      segs.forEach((p, i) => {
+        if (mergeIds && /^\d+$/.test(p)) p = "__D__";
+        curr = curr[p] || (curr[p] = {});
+        if (i === segs.length - 1) curr.$ = 1;
+      });
+    });
+
+    const trieToRegex = (node) => {
+      const keys = Object.keys(node).filter(k => k !== '$');
+      if (!keys.length) return "";
+      const kids = keys.map(k => (k === "__D__" ? "\\d+" : esc(k)) + (trieToRegex(node[k]) ? "\\/" + trieToRegex(node[k]) : ""));
+      const res = kids.length > 1 ? `(?:${kids.join('|')})` : kids[0];
+      return node.$ && keys.length ? `(?:${res})?` : res;
+    };
+
+    const results = Object.keys(trie).map(h => {
+      const pReg = trieToRegex(trie[h]);
+      const protocol = document.getElementById('proto').checked ? "https?:\\/\\/" : "";
+      if (mode === 'path') return "\\/" + pReg;
+      if (mode === 'domain') return esc(h) + "\\/" + pReg;
+      return protocol + esc(h) + "\\/" + pReg;
+    });
+
+    let res = (results.length > 1 ? `(?:${results.join('|')})` : results[0]).replace(/\\\/$/g, "\\/");
+    if (document.getElementById('exact').checked) res = `^${res}$`;
+    document.getElementById('output').innerText = res;
+  }
+
+  function copy() {
+    navigator.clipboard.writeText(document.getElementById('output').innerText);
+    alert('已复制');
+  }
+</script>
+</body>
+</html>
