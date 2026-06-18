@@ -4,3 +4,4 @@
 2. TXT整理格式：https://kanalian.github.io/cage/txtsave.html
 3. 搜索+日常记录：https://kanalian.github.io/cage/searchre.html
 4. 正则统计规范：https://kanalian.github.io/cage/regularurl.html
+5. 葡语作文参考：https://kanalian.github.io/cage/ptredacao.html
