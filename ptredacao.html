@@ -73,7 +73,37 @@
     .page.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .page-title { font-size: 28px; margin: 0 0 20px; padding-bottom: 8px; border-bottom: 4px solid var(--line); color: var(--heading); }
+    .page-title {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      font-size: 28px; margin: 0 0 20px; padding-bottom: 8px;
+      border-bottom: 4px solid var(--line); color: var(--heading);
+    }
+    .page-title-text { display: inline-block; }
+    .page-toc-toggle {
+      width: 28px; height: 28px; padding: 0; border: none; border-radius: 999px;
+      background: transparent; color: var(--muted); font-size: 22px; font-weight: 800;
+      cursor: pointer; line-height: 1; transition: 0.2s;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .page-toc-toggle:hover { background: #f3f4f6; color: var(--heading); }
+    .page-toc-toggle.active { transform: rotate(180deg); color: var(--heading); }
+    .page-toc-panel {
+      display: none; margin: -8px 0 20px; padding: 12px 14px;
+      background: var(--card); border: 1px solid #e5e7eb; border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .page-toc-panel.open { display: block; }
+    .page-toc-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .page-toc-list a {
+      display: inline-block; padding: 7px 11px; border-radius: 999px;
+      background: #f3f4f6; color: var(--heading); text-decoration: none;
+      font-size: 14px; font-weight: 700;
+    }
+    .page-toc-list a:hover { background: #e5e7eb; }
+    #editable-area .section-title,
+    #editable-area .item,
+    #editable-area .letter,
+    #editable-area .essay { scroll-margin-top: 115px; }
     .section-title { font-size: 22px; margin: 30px 0 15px; color: var(--heading); }
     .card, .letter, .essay { background: var(--card); border-radius: var(--radius); padding: 25px 30px; margin-bottom: 25px; box-shadow: var(--shadow); }
     .card h3, .letter h3, .essay h3 { font-size: 20px; margin: 0 0 20px; padding-bottom: 10px; border-bottom: 2px solid var(--line); color: var(--heading); }
@@ -738,6 +768,7 @@
      */
     function switchTab(sectionId, element) {
       hideAnnotateToolbar(true);
+      closeAllPageTocs();
       // 隐藏所有页面
       const pages = document.querySelectorAll('.page');
       pages.forEach(p => p.classList.remove('active'));
@@ -755,6 +786,115 @@
       if (activeLink) activeLink.classList.add('active');
 
       window.scrollTo(0, 0); // 切换后回到顶部
+    }
+
+    /**
+     * 1.1 当前分类页内目录
+     */
+    function getPageTitleText(page) {
+      const titleText = page ? page.querySelector(':scope > .page-title .page-title-text') : null;
+      if (titleText) return titleText.textContent.trim();
+      const title = page ? page.querySelector(':scope > .page-title') : null;
+      return title ? title.textContent.replace(/目录|[▾⌄⌃▲▼↑↓]/g, '').trim() : '';
+    }
+
+    function preparePageTocControls() {
+      document.querySelectorAll('#editable-area .page').forEach(page => {
+        const title = page.querySelector(':scope > .page-title');
+        if (!title) return;
+
+        title.querySelectorAll(':scope > .page-toc-toggle').forEach(el => el.remove());
+        const oldPanel = page.querySelector(':scope > .page-toc-panel');
+        if (oldPanel) oldPanel.remove();
+
+        let titleText = title.querySelector(':scope > .page-title-text');
+        if (!titleText) {
+          const rawTitle = title.textContent.replace(/目录|[▾⌄⌃▲▼↑↓]/g, '').trim();
+          title.innerHTML = '';
+          titleText = document.createElement('span');
+          titleText.className = 'page-title-text';
+          titleText.textContent = rawTitle;
+          title.appendChild(titleText);
+        }
+
+        const tocItems = collectPageTocItems(page);
+        if (!tocItems.length) return;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'page-toc-toggle';
+        btn.textContent = '▾';
+        btn.setAttribute('aria-label', '展开目录');
+        btn.setAttribute('title', '目录');
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          togglePageToc(page.id, btn);
+        };
+        title.appendChild(btn);
+
+        const panel = document.createElement('div');
+        panel.className = 'page-toc-panel';
+        panel.setAttribute('aria-hidden', 'true');
+        const list = document.createElement('div');
+        list.className = 'page-toc-list';
+
+        tocItems.forEach((item, index) => {
+          if (!item.target.id) item.target.id = 'toc-target-' + page.id + '-' + index;
+          const link = document.createElement('a');
+          link.href = 'javascript:void(0)';
+          link.textContent = item.title;
+          link.onclick = function() {
+            item.target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            panel.classList.remove('open');
+            btn.classList.remove('active');
+            btn.setAttribute('aria-label', '展开目录');
+            panel.setAttribute('aria-hidden', 'true');
+          };
+          list.appendChild(link);
+        });
+
+        panel.appendChild(list);
+        title.insertAdjacentElement('afterend', panel);
+      });
+    }
+
+    function collectPageTocItems(page) {
+      if (page.id === 'materials') {
+        return Array.from(page.querySelectorAll(':scope > .section-title')).map(title => ({
+          title: title.textContent.trim(),
+          target: title
+        }));
+      }
+
+      return Array.from(page.querySelectorAll(':scope > .letter, :scope > .essay')).map(entry => ({
+        title: entry.querySelector('h3')?.textContent.trim() || getEntryTitle(entry),
+        target: entry
+      })).filter(item => item.title);
+    }
+
+    function togglePageToc(pageId, btn) {
+      hideAnnotateToolbar(true);
+      const page = document.getElementById(pageId);
+      if (!page) return;
+      const panel = page.querySelector(':scope > .page-toc-panel');
+      if (!panel) return;
+      const open = !panel.classList.contains('open');
+      closeAllPageTocs();
+      panel.classList.toggle('open', open);
+      btn.classList.toggle('active', open);
+      btn.setAttribute('aria-label', open ? '收起目录' : '展开目录');
+      panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+
+    function closeAllPageTocs() {
+      document.querySelectorAll('.page-toc-panel').forEach(panel => {
+        panel.classList.remove('open');
+        panel.setAttribute('aria-hidden', 'true');
+      });
+      document.querySelectorAll('.page-toc-toggle').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-label', '展开目录');
+      });
     }
 
     /**
@@ -794,7 +934,7 @@
           const count = highlightTextInElement(entry, query);
           totalCount += count;
           const page = entry.closest('.page');
-          const pageTitle = page ? (page.querySelector('.page-title')?.textContent.trim() || page.id) : '';
+          const pageTitle = page ? (getPageTitleText(page) || page.id) : '';
           const title = entry.querySelector('h3, .phrase')?.textContent.trim() || pageTitle;
           const index = text.toLowerCase().indexOf(qLower);
           const start = Math.max(0, index - 35);
@@ -987,6 +1127,7 @@
       }
       if (!confirm('确定删除选中的 ' + selected.length + ' 个条目吗？')) return;
       selected.forEach(entry => entry.remove());
+      preparePageTocControls();
       updateSelectedCount();
       saveToLocal();
       alert('已删除选中条目。');
@@ -1081,6 +1222,7 @@
           if (last && last !== entry) last.parentNode.insertBefore(entry, last.nextSibling);
         });
       }
+      preparePageTocControls();
       saveToLocal();
     }
 
@@ -1238,6 +1380,7 @@
 
       insertEntryAt(section, article, placement);
       ensureEntryIds();
+      preparePageTocControls();
       if (editMode) prepareEditControls();
       saveToLocal();
       closeAddDialog();
@@ -1533,7 +1676,7 @@
       const area = document.getElementById('editable-area');
       const clone = area.cloneNode(true);
       clone.classList.remove('edit-mode');
-      clone.querySelectorAll('.entry-check, .entry-sort-controls').forEach(el => el.remove());
+      clone.querySelectorAll('.entry-check, .entry-sort-controls, .page-toc-toggle, .page-toc-panel').forEach(el => el.remove());
       clone.querySelectorAll('.editable-entry').forEach(el => el.classList.remove('editable-entry'));
       clone.querySelectorAll('.entry-selected').forEach(el => el.classList.remove('entry-selected'));
       clone.querySelectorAll('.search-mark').forEach(mark => {
@@ -1560,6 +1703,7 @@
         document.getElementById('editable-area').innerHTML = savedData;
       }
       ensureEntryIds();
+      preparePageTocControls();
       syncActiveNavFromPage();
     });
 
