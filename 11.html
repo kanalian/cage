@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>葡语Redação合集 (交互切换版)</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #222222;
+      --muted: #6b7280;
+      --heading: #111827;
+      --line: #374151;
+      --soft-line: #d1d5db;
+      --shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+      --radius: 14px;
+      --hl-color: #fff176;
+      --note-color: #ffcc80;
+      --primary: #2563eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0; padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Microsoft YaHei", sans-serif;
+      line-height: 1.8; color: var(--text); background: var(--bg);
+      padding-top: 70px;
+    }
+
+    /* 操作栏 */
+    .action-bar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 60px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 9999;
+    }
+    .btn {
+      padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd;
+      background: #fff; cursor: pointer; font-size: 13px; transition: all 0.2s;
+    }
+    .btn:hover { background: #f0f0f0; }
+    .btn-save { background: #111827; color: #fff; border: none; }
+    .btn-clear { color: #dc2626; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px 20px 80px; }
+
+    h1 { text-align: center; font-size: 32px; margin: 0 0 10px; color: var(--heading); }
+    .subtitle { text-align: center; color: var(--muted); margin-bottom: 25px; font-size: 14px; }
+
+    /* 目录改为导航菜单样式 */
+    .toc {
+      background: var(--card); border-radius: var(--radius);
+      padding: 15px 20px; margin-bottom: 30px; box-shadow: var(--shadow);
+    }
+    .toc h2 { font-size: 18px; margin: 0 0 10px; color: var(--muted); border: none; }
+    .toc ul {
+      margin: 0; padding: 0; list-style: none;
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .toc li { flex: 1; min-width: 120px; }
+    .toc a {
+      display: block; text-align: center; padding: 10px;
+      background: #f3f4f6; color: var(--heading); text-decoration: none;
+      border-radius: 8px; font-weight: 600; transition: 0.2s;
+    }
+    .toc a:hover { background: #e5e7eb; }
+    .toc a.active { background: var(--line); color: #fff; }
+
+    /* 内容区域控制 */
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .page-title { font-size: 28px; margin: 0 0 20px; padding-bottom: 8px; border-bottom: 4px solid var(--line); color: var(--heading); }
+    .section-title { font-size: 22px; margin: 30px 0 15px; color: var(--heading); }
+    .card, .letter, .essay { background: var(--card); border-radius: var(--radius); padding: 25px 30px; margin-bottom: 25px; box-shadow: var(--shadow); }
+    .card h3, .letter h3, .essay h3 { font-size: 20px; margin: 0 0 20px; padding-bottom: 10px; border-bottom: 2px solid var(--line); color: var(--heading); }
+    .item { background: var(--card); border-radius: 12px; padding: 18px 22px; margin-bottom: 15px; box-shadow: var(--shadow); }
+    .phrase { font-size: 18px; font-weight: 700; color: var(--heading); margin-bottom: 5px; }
+    .meaning { color: var(--muted); font-weight: 500; margin-left: 6px; font-size: 15px; }
+    .example { margin-top: 8px; padding-left: 12px; border-left: 4px solid var(--soft-line); color: #374151; font-style: italic; }
+    .translation { margin-top: 8px; color: #4b5563; font-size: 15px; }
+    .date { margin-bottom: 15px; color: #374151; font-weight: 500; }
+    .subject { margin-bottom: 18px; font-weight: 700; color: var(--heading); }
+    .salutation { margin-bottom: 15px; font-weight: 600; }
+    p { margin: 0 0 15px; text-align: justify; }
+    .closing { margin-top: 20px; }
+    .signature { margin-top: 5px; font-weight: 600; }
+
+    /* 高亮与批注 */
+    .hl-text { background-color: var(--hl-color); }
+    .note-text { 
+      border-bottom: 2px dashed #f59e0b; 
+      background-color: rgba(255, 204, 128, 0.2); cursor: help; position: relative;
+    }
+    .note-text:hover::after {
+      content: "笔记: " attr(data-note);
+      position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 8px 12px; border-radius: 6px;
+      font-size: 13px; white-space: pre-wrap; z-index: 10000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 200px;
+    }
+
+
+    /* 分类栏右侧工具按钮 */
+    .toc-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 10px;
+    }
+    .toc-head h2 { margin: 0; }
+    .toc-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .toc-action-btn {
+      padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px;
+      background: #fff; color: var(--heading); font-weight: 700; cursor: pointer;
+      transition: 0.2s;
+    }
+    .toc-action-btn:hover { background: #f3f4f6; }
+    .toc-action-btn.active { background: var(--line); color: #fff; border-color: var(--line); }
+
+    .search-panel, .edit-panel {
+      display: none; margin: 0 0 12px; padding: 12px;
+      background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px;
+    }
+    .search-panel.open, .edit-panel.open { display: block; }
+    .search-row, .edit-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .search-input, .add-input, .add-textarea, .add-select {
+      width: 100%; padding: 9px 10px; border: 1px solid #d1d5db;
+      border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff;
+    }
+    .search-input { flex: 1; min-width: 220px; }
+    .search-results {
+      margin-top: 10px; max-height: 220px; overflow: auto; font-size: 14px;
+    }
+    .search-result {
+      display: block; padding: 8px 10px; margin-bottom: 6px; border-radius: 8px;
+      background: #fff; border: 1px solid #e5e7eb; color: var(--text); text-decoration: none;
+    }
+    .search-result:hover { background: #f3f4f6; }
+    .search-result strong { color: var(--heading); }
+    .search-mark { background: #fde68a; padding: 0 2px; border-radius: 3px; }
+
+    .edit-hint { color: var(--muted); font-size: 13px; }
+    .edit-count { color: var(--heading); font-weight: 700; }
+    #editable-area.edit-mode .item,
+    #editable-area.edit-mode .letter,
+    #editable-area.edit-mode .essay {
+      position: relative; outline: 1px dashed #cbd5e1; cursor: pointer;
+    }
+    #editable-area.edit-mode .item:hover,
+    #editable-area.edit-mode .letter:hover,
+    #editable-area.edit-mode .essay:hover { outline-color: var(--primary); }
+    .entry-check {
+      display: none; position: absolute; top: 10px; right: 12px; z-index: 5;
+      padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,0.95);
+      border: 1px solid #d1d5db; font-size: 13px; color: var(--heading);
+      align-items: center; gap: 5px; user-select: none;
+    }
+    #editable-area.edit-mode .entry-check { display: inline-flex; }
+    .entry-selected { outline: 3px solid var(--primary) !important; }
+    .entry-sort-controls {
+      display: none; position: absolute; top: 10px; right: 92px; z-index: 5;
+      gap: 4px; padding: 3px; border-radius: 999px; background: rgba(255,255,255,0.95);
+      border: 1px solid #d1d5db;
+    }
+    #editable-area.edit-mode .entry-sort-controls { display: inline-flex; }
+    .entry-sort-controls button {
+      width: 26px; height: 24px; border: 1px solid #d1d5db; border-radius: 999px;
+      background: #fff; cursor: pointer; line-height: 1; font-weight: 700; color: var(--heading);
+    }
+    .entry-sort-controls button:hover { background: #eef2ff; border-color: var(--primary); }
+    .add-note { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field-full { grid-column: 1 / -1; }
+
+    .modal {
+      display: none; position: fixed; inset: 0; z-index: 20000;
+      background: rgba(17, 24, 39, 0.45); align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(680px, 100%); max-height: 90vh; overflow: auto;
+      background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      padding: 22px;
+    }
+    .modal-card h3 { margin: 0 0 15px; color: var(--heading); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; margin-bottom: 5px; color: var(--muted); font-weight: 700; font-size: 14px; }
+    .add-textarea { min-height: 130px; resize: vertical; line-height: 1.6; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+
+
+    /* 移动端/桌面选词标注工具条 */
+    #editable-area .item,
+    #editable-area .letter,
+    #editable-area .essay,
+    #editable-area p,
+    #editable-area .phrase,
+    #editable-area .example,
+    #editable-area .translation,
+    #editable-area .date,
+    #editable-area .subject,
+    #editable-area .salutation,
+    #editable-area .closing,
+    #editable-area .signature {
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
+    }
+    .annotate-toolbar {
+      display: none; position: fixed; left: 50%; top: 120px; transform: translateX(-50%);
+      z-index: 30000; gap: 8px; align-items: center;
+      padding: 8px; background: rgba(17, 24, 39, 0.96); border-radius: 999px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .annotate-toolbar.open { display: flex; }
+    .annotate-toolbar button {
+      border: none; border-radius: 999px; padding: 8px 12px;
+      background: #fff; color: #111827; font-size: 14px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+    }
+    .annotate-toolbar button:hover { background: #f3f4f6; }
+    .annotate-toolbar .btn-note { background: #ffedd5; }
+    .annotate-toolbar .btn-cancel { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.45); }
+
+    @media (max-width: 720px) {
+      .toc li { min-width: 45%; }
+      .container { padding-top: 10px; }
+      .action-bar { height: auto; min-height: 56px; padding: 8px; flex-wrap: wrap; gap: 8px; }
+      body { padding-top: 92px; }
+      .toc-head { align-items: stretch; flex-direction: column; }
+      .toc-actions { width: 100%; }
+      .toc-action-btn { flex: 1; }
+      .field-grid { grid-template-columns: 1fr; }
+      .field-full { grid-column: auto; }
+      .annotate-toolbar {
+        left: 12px !important; right: 12px; top: auto !important; bottom: 18px;
+        transform: none; justify-content: center; border-radius: 16px; padding: 10px;
+      }
+      .annotate-toolbar button { flex: 1; padding: 10px 8px; }
+
+    }
+  </style>
+</head>
+
+<body>
+  <div class="action-bar">
+    <button class="btn btn-save" onclick="saveData()">保存到当前HTML</button>
+    <button class="btn" onclick="saveCacheOnly()">仅保存缓存</button>
+    <button class="btn" onclick="exportData()">下载HTML副本</button>
+    <button class="btn btn-clear" onclick="clearData()">清空标记</button>
+  </div>
+
+  <main class="container">
+    <h1>葡语Redação合集</h1>
+    <div class="subtitle">划词可高亮或记笔记；点击“保存到当前HTML”可生成包含当前修改的页面文件</div>
+
+    <!-- 导航菜单 -->
+    <nav class="toc">
+      <div class="toc-head">
+        <h2>选择分类：</h2>
+        <div class="toc-actions">
+          <button type="button" id="search-toggle" class="toc-action-btn" onclick="toggleSearchPanel()">搜索</button>
+          <button type="button" id="edit-toggle" class="toc-action-btn" onclick="toggleEditMode()">编辑</button>
+        </div>
+      </div>
+
+      <div id="search-panel" class="search-panel">
+        <div class="search-row">
+          <input id="search-input" class="search-input" type="search" placeholder="输入关键词，搜索所有分类文本" onkeydown="if(event.key==='Enter') doGlobalSearch()" />
+          <button type="button" class="btn btn-save" onclick="doGlobalSearch()">搜索</button>
+          <button type="button" class="btn" onclick="clearSearchResults()">清除</button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+      </div>
+
+      <div id="edit-panel" class="edit-panel">
+        <div class="edit-row">
+          <button type="button" class="btn btn-save" onclick="openAddDialog()">新增条目</button>
+          <button type="button" class="btn" onclick="moveSelectedEntries('up')">上移</button>
+          <button type="button" class="btn" onclick="moveSelectedEntries('down')">下移</button>
+          <button type="button" class="btn" onclick="moveSelectedEntries('top')">置顶</button>
+          <button type="button" class="btn" onclick="moveSelectedEntries('bottom')">置底</button>
+          <button type="button" class="btn btn-clear" onclick="deleteSelectedEntries()">删除选中</button>
+          <span class="edit-count" id="edit-count">已选 0 项</span>
+          <span class="edit-hint">编辑模式下，可多选删除，也可用上移/下移/置顶/置底手动排序。条目右上角也有单条排序按钮。</span>
+        </div>
+      </div>
+
+      <ul id="nav-menu">
+        <li><a href="javascript:void(0)" data-section="materials" onclick="switchTab('materials', this)" class="active">作文素材</a></li>
+        <li><a href="javascript:void(0)" data-section="suggestion-letters" onclick="switchTab('suggestion-letters', this)">建议信</a></li>
+        <li><a href="javascript:void(0)" data-section="proposal-letters" onclick="switchTab('proposal-letters', this)">提案信</a></li>
+        <li><a href="javascript:void(0)" data-section="argumentative-essays" onclick="switchTab('argumentative-essays', this)">议论文</a></li>
+        <li><a href="javascript:void(0)" data-section="complaint-letters" onclick="switchTab('complaint-letters', this)">投诉信</a></li>
+        <li><a href="javascript:void(0)" data-section="narrative-essays" onclick="switchTab('narrative-essays', this)">叙述文</a></li>
+      </ul>
+    </nav>
+
+    <div id="editable-area">
+      <!-- 作文素材 (默认显示) -->
+      <section id="materials" class="page active">
+        <h2 class="page-title">作文素材</h2>
+        <h3 class="section-title">高级词组</h3>
+        <article class="item">
+          <div class="phrase">tapar o sol com a peneira <span class="meaning">自欺欺人 / 筛子遮日</span></div>
+          <div class="example">Ignorar a desigualdade salarial seria tapar o sol com a peneira.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">apenas a ponta do icebergue <span class="meaning">只是……的冰山一角</span></div>
+          <div class="example">A dependência dos jovens em relação ao telemóvel é apenas a ponta do icebergue de um problema mais amplo: a fragilidade da atenção.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">pagar a fatura <span class="meaning">为……买单 / 支付代价</span></div>
+          <div class="example">Se o consumo continuar sem limites, serão os mais vulneráveis a pagar a fatura da crise ambiental.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">pôr o dedo na ferida <span class="meaning">触动敏感神经</span></div>
+          <div class="example">A discussão sobre o voluntariado põe o dedo na ferida: a boa vontade individual não substitui políticas sociais consistentes.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">dar um passo maior do que a perna <span class="meaning">步子太大扯到蛋</span></div>
+          <div class="example">Ao digitalizar todos os serviços sem preparar os cidadãos, o Estado corre o risco de dar um passo maior do que a perna.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">não há bela sem senão <span class="meaning">世无完美之物</span></div>
+          <div class="example">A inteligência artificial oferece oportunidades enormes, mas não há bela sem senão: os riscos éticos são igualmente reais.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">dois pesos e duas medidas <span class="meaning">双重标准</span></div>
+          <div class="example">Quando a ambição masculina é valorizada e a feminina é censurada, estamos perante dois pesos e duas medidas.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">fazer vista grossa <span class="meaning">视而不见 / 空睁眼</span></div>
+          <div class="example">Fazer vista grossa perante a poluição industrial significa transferir custos ambientais para as gerações futuras.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">entre a espada e a parede <span class="meaning">进退两难 / 剑锋与墙壁之间</span></div>
+          <div class="example">Muitas famílias encontram-se entre a espada e a parede: precisam de trabalhar longas horas, mas também desejam acompanhar os filhos.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">valioso, mas não faz milagres <span class="meaning">有价值，但不能创造奇迹</span></div>
+          <div class="example">O voluntariado é valioso, mas não faz milagres quando faltam políticas públicas consistentes.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">ficar aquém do necessário para <span class="meaning">远不足以……</span></div>
+          <div class="example">As medidas atuais ficam aquém do necessário para enfrentar a gravidade da crise ambiental.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">lançar luz sobre <span class="meaning">揭示 / 照亮</span></div>
+          <div class="example">Esta experiência lançou luz sobre uma forma de solidão que raramente aparece nas estatísticas.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">estar na ordem do dia <span class="meaning">成为当下热点</span></div>
+          <div class="example">A proteção de dados pessoais está na ordem do dia.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">dar voz a <span class="meaning">赋予发言权</span></div>
+          <div class="example">A educação deve dar voz aos alunos, em vez de os reduzir a resultados numéricos.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">à custa de <span class="meaning">以……为代价</span></div>
+          <div class="example">Não se deve promover a eficiência à custa da dignidade humana.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">varrer o problema para debaixo do tapete <span class="meaning">眼不见为净 / 扫入毯子底下</span></div>
+          <div class="example">Adiar a discussão sobre privacidade digital é apenas varrer o problema para debaixo do tapete.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">chover no molhado <span class="meaning">老生常谈 / 雨落地湿</span></div>
+          <div class="example">Dizer que devemos proteger o ambiente pode parecer chover no molhado; a verdadeira questão é saber que medidas estamos dispostos a aceitar.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">ficar no papel <span class="meaning">停在纸面上</span></div>
+          <div class="example">Sem fiscalização, qualquer política ambiental corre o risco de ficar no papel.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">passar das palavras aos atos <span class="meaning">从口头变成行动</span></div>
+          <div class="example">No combate ao desperdício, é urgente passar das palavras aos atos.</div>
+        </article>
+
+        <h3 class="section-title">句式类型</h3>
+        <article class="item">
+          <div class="phrase">Seria injusto transferir toda a responsabilidade para o indivíduo.</div>
+          <div class="translation">把全部责任转嫁给个人是不公平的。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Parece-me mais sensato afirmar que a tecnologia deve ser regulada, e não simplesmente rejeitada.</div>
+          <div class="translation">我认为更合理的说法是：技术应被规范，而不是简单拒绝。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Trata-se de um problema complexo, no qual se cruzam fatores económicos, sociais e éticos.</div>
+          <div class="translation">这是一个复杂问题，其中交织着经济、社会和伦理因素。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Em última análise, o valor da tecnologia depende menos da sua sofisticação do que da finalidade humana que lhe atribuímos.</div>
+          <div class="translation">归根结底，技术的价值与其说是取决于其复杂程度，不如说是取决于我们赋予它的人类用途。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Quando uma sociedade valoriza apenas a eficiência, corre o risco de esquecer aquilo que não pode ser medido.</div>
+          <div class="translation">当一个社会只重视效率，它就可能忘记那些无法被衡量的东西。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">A tecnologia deve ampliar possibilidades humanas, não reduzir o ser humano a dados, perfis e previsões.</div>
+          <div class="translation">技术应扩展人的可能性，而不是把人简化为数据、画像和预测。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Uma política pública séria deve antecipar problemas, e não apenas remediá-los depois de se tornarem visíveis.</div>
+          <div class="translation">严肃的公共政策应预判问题，而不是等问题显现后再补救。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">A verdadeira inclusão não consiste em oferecer o mesmo a todos, mas em reconhecer que nem todos partem do mesmo lugar.</div>
+          <div class="translation">真正的包容不是给所有人同样的东西，而是承认每个人的起点不同。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Muitas vezes, o problema não é por falta de informação, mas por excesso de estímulos e ausência de reflexão.</div>
+          <div class="translation">通常，问题不在于缺乏信息，而在于刺激过多和缺乏思考。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Quanto mais dependemos da tecnologia para decidir, mais necessário se torna preservar a autonomia crítica.</div>
+          <div class="translation">我们越依赖技术来做决策，就越需要维护关键的自主权。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Seria ingénuo acreditar que o mercado, por si só, corrigirá todas as desigualdades.</div>
+          <div class="translation">如果认为仅靠市场本身就能修正所有不平等现象，未免太过天真。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Nos processos de recrutamento, a neutralidade aparente pode esconder relações de poder e preconceitos antigos.</div>
+          <div class="translation">在招聘过程中，表面上的中立掩盖了权力关系和长期存在的偏见。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Não estamos perante um problema isolado, mas perante um sintoma de uma sociedade que valoriza a velocidade mais do que a reflexão.</div>
+          <div class="translation">我们面临的并非是一个孤立的问题，而是推崇速度胜于反思的社会症候。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Aquilo que começa por ser comodidade pode acabar por tornar-se dependência.</div>
+          <div class="translation">最初只是图方便，最后可能变成依赖性。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Caso não seja apresentada uma solução satisfatória, ver-me-ei obrigado a recorrer às entidades competentes.</div>
+          <div class="translation">如果没有给出一个令人满意的解决方案，我只能诉诸有关当局。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Regular não é travar; é orientar.</div>
+          <div class="translation">法规不是阻碍，而是引导。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">O problema não está apenas no fenómeno em si, mas nas prioridades sociais que ele revela.</div>
+          <div class="translation">问题不仅在于现象本身，更在于它所揭示的社会优先事项。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Não basta perguntar se algo é eficiente; é preciso perguntar para quem, a que preço e com que consequências.</div>
+          <div class="translation">仅仅询问某件事是否高效是不够的，还需要询问它服务于谁，代价是什么，以及会带来什么后果。</div>
+        </article>
+        <article class="item">
+          <div class="phrase">O futuro não deve ser construído à custa daqueles que têm menos capacidade de se defender.</div>
+          <div class="translation">未来不应以牺牲最无力自卫者为代价来建设。</div>
+        </article>
+
+        <h3 class="section-title">谚语俗语</h3>
+        <article class="item">
+          <div class="phrase">De boas intenções está o inferno cheio. <span class="meaning">光有好心是不够的。</span></div>
+          <div class="example">No voluntariado, como na política social, de boas intenções está o inferno cheio: é preciso ajudar sem humilhar nem simplificar a realidade do outro.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Quem semeia ventos colhe tempestades. <span class="meaning">自食恶果。</span></div>
+          <div class="example">Uma sociedade que ignora a desigualdade acaba por confirmar o velho provérbio: quem semeia ventos colhe tempestades.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">A pressa é inimiga da perfeição. <span class="meaning">欲速则不达。</span></div>
+          <div class="example">A pressa é inimiga da perfeição, sobretudo quando políticas públicas são substituídas por soluções imediatas.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Mais vale prevenir do que remediar. <span class="meaning">预防胜于补救。</span></div>
+          <div class="example">No domínio ambiental, mais vale prevenir do que remediar, pois certos danos são irreversíveis.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Nem tudo o que reluz é ouro. <span class="meaning">外表华丽，腹内草莽。</span></div>
+          <div class="example">Nem tudo o que reluz é ouro: um centro comercial luxuoso pode esconder desequilíbrios sociais profundos.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">Quem tudo quer tudo perde. <span class="meaning">贪多必失。</span></div>
+          <div class="example">Numa cultura de consumo permanente, convém lembrar que quem tudo quer tudo perde: ao procurar possuir sempre mais, arriscamo-nos a perder equilíbrio e consciência.</div>
+        </article>
+        <article class="item">
+          <div class="phrase">O barato sai caro. <span class="meaning">贪小便宜吃大亏。</span></div>
+          <div class="example">Quando se escolhem soluções ambientais apenas por serem baratas, esquece-se que, muitas vezes, o barato sai caro.</div>
+        </article>
+      </section>
+
+      <!-- 建议信 -->
+      <section id="suggestion-letters" class="page">
+        <h2 class="page-title">建议信</h2>
+        <article class="letter">
+          <h3>反对拆除图书馆</h3>
+          <div class="date">Porto, 14 de maio de 2026</div>
+          <div class="subject">Assunto: Pedido de reconsideração do encerramento das bibliotecas municipais</div>
+          <div class="salutation">Exmo. Senhor Presidente da Câmara Municipal,</div>
+          <p>Tendo tomado conhecimento da intenção de demolir três bibliotecas públicas, alegadamente por falta de utilização e por custos de manutenção excessivos, venho solicitar a V. Ex.ª que reconsidere tal decisão. Embora compreenda as restrições orçamentais da autarquia, considero que destruir estes equipamentos seria uma solução precipitada e socialmente empobrecedora.</p>
+          <p>A baixa frequência não prova inutilidade; revela, muitas vezes, horários inadequados, divulgação insuficiente e ausência de programação atrativa. Uma biblioteca moderna pode ser sala de estudo, centro digital, espaço de leitura infantil, apoio a idosos e ponto de encontro intercultural. Em bairros onde nem todas as famílias dispõem de livros, computadores ou silêncio, a biblioteca continua a ser uma forma concreta de igualdade.</p>
+          <p>Proponho, por isso, que se realize uma consulta pública antes de qualquer demolição. Paralelamente, poderiam ser testados horários pós-laborais, parcerias com escolas e universidades, clubes de leitura, oficinas de literacia digital e reaproveitamento parcial dos edifícios para serviços comunitários. Tais medidas custariam menos do que reconstruir, no futuro, aquilo que hoje se pretende apagar.</p>
+          <p>Peço, assim, que a Câmara suspenda o projeto e transforme as bibliotecas em espaços vivos, em vez de as condenar por não terem sido devidamente valorizadas.</p>
+          <div class="closing">Com elevada consideração,</div>
+          <div class="signature">Ana Martins</div>
+        </article>
+        <article class="letter">
+          <h3>忧心机器人发展</h3>
+          <div class="date">Lisboa, 13 de maio de 2026</div>
+          <div class="subject">Assunto: Medidas para salvaguardar o bem-estar na era da robotização</div>
+          <div class="salutation">Exmos. Senhores do Ministério da Felicidade e Sobrevivência,</div>
+          <p>Dirijo-me a V. Ex.as na qualidade de cidadã preocupada com a rápida substituição de postos de trabalho por robôs. A automatização pode libertar as pessoas de tarefas perigosas e repetitivas; contudo, se for deixada exclusivamente ao mercado, criará desemprego estrutural, perda de rendimento e uma sensação generalizada de inutilidade social.</p>
+          <p>Proponho, em primeiro lugar, que se institua um fundo nacional de transição, financiado por uma taxa sobre ganhos extraordinários de produtividade, destinado à requalificação profissional e ao apoio temporário dos trabalhadores deslocados. Em segundo lugar, cada empresa que automatize funções deveria apresentar um plano de impacto humano, indicando quantos colaboradores serão reconvertidos, em que prazos e com que formação. Além disso, convém reforçar serviços públicos de saúde mental e criar centros comunitários onde idosos, jovens e desempregados possam desenvolver projetos sociais, artísticos ou científicos. Sugiro ainda a publicação anual de indicadores sobre emprego, salários e satisfação, para que a política seja corrigida antes de produzir danos irreversíveis.</p>
+          <p>A robotização não deve ser travada, mas civilizada. Se a tecnologia aumentar apenas os lucros, empobrecerá a democracia; se for acompanhada por políticas justas, poderá ampliar a liberdade humana.</p>
+          <div class="closing">Com os melhores cumprimentos,</div>
+          <div class="signature">Maria Silva</div>
+        </article>
+        <article class="letter">
+          <h3>倡议保护环境</h3>
+          <div class="date">Faro, 19 de maio de 2026</div>
+          <div class="subject">Assunto: Sugestões para reforçar a proteção ambiental no município</div>
+          <div class="salutation">Exmo. Senhor Presidente da Câmara Municipal,</div>
+          <p>Venho, na qualidade de residente, apresentar algumas propostas que considero urgentes para melhorar a proteção ambiental da nossa cidade. Nos últimos anos, aumentaram o trânsito, a produção de resíduos e a pressão sobre as zonas verdes; simultaneamente, muitos cidadãos sentem que as campanhas existentes são pontuais e pouco eficazes.</p>
+          <p>Sugiro, em primeiro lugar, a criação de corredores verdes que liguem escolas, parques e bairros residenciais, favorecendo deslocações a pé ou de bicicleta. Para isso, seria necessário alargar passeios, instalar ciclovias seguras e plantar árvores adaptadas ao clima local. Em segundo lugar, proponho a recolha seletiva porta a porta nos bairros com menor taxa de reciclagem, acompanhada de informação clara e fiscalização gradual. Multar sem educar seria injusto; educar sem fiscalizar seria insuficiente.</p>
+          <p>Além disso, a autarquia poderia apoiar hortas comunitárias e mercados de produtores locais, reduzindo transporte de alimentos e fortalecendo laços entre moradores. Finalmente, seria útil publicar relatórios trimestrais sobre qualidade do ar, consumo de água e destino dos resíduos, para que a população acompanhe os resultados.</p>
+          <p>A proteção ambiental não deve ser tratada como ornamento político, mas como condição de saúde pública e justiça entre gerações.</p>
+          <div class="closing">Com os melhores cumprimentos,</div>
+          <div class="signature">Miguel Rocha</div>
+        </article>
+      </section>
+
+      <!-- 提案信 -->
+      <section id="proposal-letters" class="page">
+        <h2 class="page-title">提案信</h2>
+        <article class="letter">
+          <h3>教育改革方案</h3>
+          <div class="date">Coimbra, 15 de maio de 2026</div>
+          <div class="subject">Assunto: Proposta para integrar tecnologia interativa no ensino</div>
+          <div class="salutation">Exmos. Senhores do Ministério da Educação,</div>
+          <p>Venho apresentar a proposta “Sala Aberta”, destinada a integrar novas tecnologias no ensino sem transformar a escola numa simples exposição de dispositivos. O objetivo central é aumentar a participação dos alunos, desenvolver autonomia intelectual e apoiar os professores na avaliação contínua.</p>
+          <p>O projeto assenta em três instrumentos. Primeiro, uma plataforma digital comum, onde cada turma possa aceder a textos, vídeos, exercícios adaptativos e fóruns moderados pelo docente. Segundo, laboratórios móveis com tablets, sensores e programas de simulação, permitindo que Matemática, Ciências ou Geografia sejam aprendidas por experimentação. Terceiro, formação obrigatória para professores, centrada não na técnica, mas no desenho de atividades críticas, colaborativas e inclusivas.</p>
+          <p>Os benefícios seriam consideráveis. Os alunos mais tímidos participariam através de respostas anónimas; os que revelam dificuldades receberiam tarefas graduadas; e os mais avançados poderiam investigar temas complementares. Para os professores, a plataforma reduziria trabalho repetitivo, disponibilizaria dados sobre progressos individuais e facilitaria a partilha de materiais entre escolas.</p>
+          <p>Para evitar desigualdades, proponho que o Ministério garanta equipamento público, assistência técnica e regras claras de proteção de dados. A tecnologia, quando pedagogicamente orientada, não substitui o professor: amplia o alcance da sua inteligência e devolve curiosidade à sala de aula.</p>
+          <div class="closing">Com os melhores cumprimentos,</div>
+          <div class="signature">João Ferreira</div>
+        </article>
+        <article class="letter">
+          <h3>推荐自己的可持续产品</h3>
+          <div class="date">Aveiro, 18 de maio de 2026</div>
+          <div class="subject">Assunto: Candidatura a apoio para produto sustentável</div>
+          <div class="salutation">Exmos. Senhores do Ministério do Ambiente e da Economia,</div>
+          <p>Na qualidade de diretora da empresa CircularCasa, venho apresentar a candidatura da nossa linha de embalagens reutilizáveis, produzidas a partir de fibras agrícolas desperdiçadas. O produto chama-se ReVolta e pretende substituir recipientes descartáveis utilizados por restaurantes, cantinas escolares e serviços de entrega ao domicílio.</p>
+          <p>A sua inovação reside em três aspetos. Em primeiro lugar, utilizamos cascas de arroz e restos de milho provenientes de produtores locais, reduzindo resíduos que seriam queimados ou enviados para aterro. Em segundo lugar, as embalagens podem ser lavadas e reutilizadas dezenas de vezes, através de um sistema de caução simples para consumidores e comerciantes. Em terceiro lugar, no fim do ciclo de vida, o material é compostável em unidades certificadas.</p>
+          <p>Solicitamos apoio financeiro para ampliar a produção, instalar pontos de recolha e desenvolver uma campanha de educação ambiental. O subsídio permitiria baixar o preço inicial, tornando a alternativa sustentável competitiva face ao plástico descartável. Estimamos, no primeiro ano, evitar cerca de três milhões de embalagens de uso único e criar vinte empregos locais.</p>
+          <p>Acreditamos que a transição ecológica só terá êxito se unir responsabilidade ambiental, viabilidade económica e participação dos cidadãos. O ReVolta concretiza precisamente essa convergência.</p>
+          <div class="closing">Com elevada consideração,</div>
+          <div class="signature">Helena Costa</div>
+        </article>
+        <article class="letter">
+          <h3>鼓励女性提高领导力</h3>
+          <div class="date">Lisboa, 20 de maio de 2026</div>
+          <div class="subject">Assunto: Proposta para promover a liderança feminina</div>
+          <div class="salutation">Exmos. Senhores,</div>
+          <p>Venho apresentar uma proposta destinada a aumentar a participação das mulheres em cargos de liderança, tanto no setor público como no privado. Apesar dos progressos legais, muitas profissionais continuam afastadas de posições decisivas por preconceitos subtis, redes informais masculinas e desigual distribuição das responsabilidades familiares.</p>
+          <p>Proponho a criação de um programa nacional de mentoria, no qual dirigentes experientes acompanhem jovens trabalhadoras durante os primeiros anos de carreira. Esse apoio deveria incluir formação em negociação salarial, gestão de equipas, comunicação pública e conhecimento dos mecanismos de promoção. Paralelamente, as organizações participantes teriam de publicar dados anuais sobre remuneração, progressão e composição dos seus órgãos de direção, pois a transparência é indispensável para corrigir injustiças invisíveis.</p>
+          <p>Defendo ainda horários flexíveis para mães e pais, licenças parentais equilibradas e critérios de avaliação baseados em resultados, não em presença prolongada no escritório. Quando cuidar de filhos ou idosos é visto como obstáculo apenas feminino, a igualdade torna-se impossível.</p>
+          <p>Promover a liderança feminina não significa favorecer pessoas menos competentes; significa retirar barreiras que impedem a competência de ser reconhecida. Uma sociedade que desperdiça metade do seu talento empobrece moral e economicamente. Por isso, solicito que esta proposta seja considerada em futuras políticas de igualdade.</p>
+          <div class="closing">Com os melhores cumprimentos,</div>
+          <div class="signature">Sofia Mendes</div>
+        </article>
+      </section>
+
+      <!-- 议论文 -->
+      <section id="argumentative-essays" class="page">
+        <h2 class="page-title">议论文</h2>
+        <article class="essay">
+          <h3>人工智能优缺点</h3>
+          <p>A inteligência artificial é frequentemente apresentada como uma revolução inevitável, ora celebrada como solução para todos os problemas, ora temida como ameaça à liberdade humana. Ambas as atitudes me parecem insuficientes. A questão central não é saber se a inteligência artificial é boa ou má, mas que tipo de sociedade estamos a construir através dela.</p>
+          <p>As suas vantagens são evidentes. Em áreas como a medicina, a educação, os transportes ou a administração pública, os sistemas inteligentes podem analisar grandes quantidades de informação, reduzir erros repetitivos e tornar certos serviços mais rápidos e acessíveis. Num mundo marcado pela complexidade, a IA oferece instrumentos poderosos para apoiar decisões, prever riscos e libertar os seres humanos de tarefas mecânicas.</p>
+          <p>Contudo, precisamente por ser poderosa, não pode ser tratada como uma ferramenta neutra. Os algoritmos aprendem a partir de dados produzidos por sociedades imperfeitas; por isso, podem reproduzir preconceitos, ampliar desigualdades e tornar invisíveis os responsáveis pelas decisões. Quando uma máquina recusa um crédito, seleciona candidatos ou vigia comportamentos, a eficiência técnica pode esconder uma perda de justiça, privacidade e responsabilidade.</p>
+          <p>Além disso, há um risco mais subtil: o empobrecimento da autonomia intelectual. Se nos habituarmos a receber respostas prontas, poderemos perder a paciência necessária para duvidar, comparar argumentos e formar juízos próprios.</p>
+          <p>Defendo, portanto, uma utilização ambiciosa, mas exigente, da inteligência artificial. Ela deve ser regulada por princípios de transparência, supervisão humana, proteção de dados e educação crítica. A IA será benéfica se ampliar a inteligência humana; tornar-se-á perigosa se servir apenas para automatizar desigualdades e substituir pensamento por conveniência.</p>
+        </article>
+        <article class="essay">
+          <h3>科技会取代外语从业者吗？</h3>
+          <p>Com o desenvolvimento dos tradutores automáticos, tornou-se comum perguntar se ainda vale a pena estudar línguas estrangeiras. À primeira vista, a dúvida parece razoável: hoje, uma aplicação consegue traduzir menus, mensagens, páginas da Internet e até conversas simples em poucos segundos. Contudo, considero precipitado concluir que as línguas deixarão de ser necessárias.</p>
+          <p>É verdade que a tecnologia resolveu muitas dificuldades práticas. Para turismo, compras ou comunicação informal, os tradutores digitais são úteis, rápidos e acessíveis. Também ajudam estudantes e profissionais a compreender textos estrangeiros sem depender constantemente de dicionários. Nesse sentido, representam uma ferramenta democrática.</p>
+          <p>No entanto, conhecer uma língua não significa apenas decifrar palavras. Uma negociação comercial, uma consulta médica, um contrato jurídico ou uma obra literária exigem contexto, subtileza, intenção e responsabilidade. A máquina pode sugerir equivalências, mas nem sempre compreende ironia, silêncio, emoção ou diferenças culturais. Além disso, quando há erro, é o ser humano que deve assumir as consequências.</p>
+          <p>Aprender línguas continua também a ser uma forma de ampliar a visão do mundo. Quem domina outra língua não ganha apenas vocabulário; ganha acesso a outra maneira de pensar. Por isso, acredito que a tecnologia não eliminará professores, tradutores e intérpretes. Eliminará, sim, tarefas mecânicas, obrigando estes profissionais a tornarem-se mais especializados, críticos e interculturais.</p>
+        </article>
+        <article class="essay">
+          <h3>奢侈品商场建设与社会不平等</h3>
+          <p>Nas grandes cidades, o consumo de luxo tornou-se mais visível: centros comerciais sofisticados, marcas internacionais e espaços de lazer caros multiplicam-se enquanto muitas famílias enfrentam rendas elevadas, salários modestos e dificuldade de acesso a serviços básicos. Perante esta contradição, considero que o governo deve limitar a construção de centros comerciais de luxo, embora não deva proibi-la totalmente.</p>
+          <p>É verdade que esses projetos podem criar emprego, atrair investimento e aumentar receitas fiscais. Também seria injusto tratar todo o consumo de alto nível como algo moralmente condenável. Numa sociedade plural, diferentes grupos têm distintas capacidades de consumo.</p>
+          <p>No entanto, quando a desigualdade social se agrava, o planeamento urbano não pode servir apenas quem possui maior poder aquisitivo. Terrenos centrais, infraestruturas públicas e recursos administrativos são limitados. Se forem orientados sobretudo para espaços exclusivos, enquanto faltam bibliotecas, centros comunitários, habitação acessível, mercados populares ou serviços de bairro, a cidade transmite uma mensagem perigosa: há sempre lugar para o luxo, mas não para as necessidades comuns.</p>
+          <p>Além disso, tais espaços reforçam a distância simbólica entre grupos sociais. Mesmo quem nunca entra neles percebe que a cidade valoriza mais a ostentação do que a inclusão.</p>
+          <p>Por isso, defendo uma limitação criteriosa: autorizar estes centros apenas quando não prejudiquem o equilíbrio urbano e quando ofereçam contrapartidas sociais claras. O objetivo não é combater a riqueza, mas impedir que a desigualdade se transforme em paisagem urbana.</p>
+        </article>
+        <article class="essay">
+          <h3>保护环境</h3>
+          <p>Proteger o ambiente deixou de ser uma causa romântica de minorias sensíveis à natureza; tornou-se uma condição material de sobrevivência e justiça. Durante muito tempo, confundiu-se progresso com produção acelerada, consumo abundante e domínio técnico sobre o mundo natural. Hoje, porém, percebe-se que esse modelo cobra um preço elevado: ar degradado, água contaminada, solos exaustos e uma relação cada vez mais frágil entre sociedade e planeta.</p>
+          <p>A proteção ambiental exige, antes de mais, uma mudança estrutural. Cidades dependentes do automóvel precisam de transportes públicos eficientes, ciclovias seguras e planeamento que aproxime habitação, trabalho e serviços. A energia deve provir cada vez mais de fontes limpas, e os edifícios devem ser concebidos para consumir menos. Estas medidas são mais importantes do que campanhas ocasionais, porque alteram as condições concretas em que as pessoas vivem.</p>
+          <p>Também as empresas têm responsabilidades decisivas. Não basta usar linguagem ecológica em publicidade; é necessário reduzir emissões, limitar embalagens, tratar resíduos e abandonar a lógica de produtos rapidamente descartáveis. O Estado deve fiscalizar, punir abusos e favorecer modelos económicos circulares.</p>
+          <p>Os cidadãos, por sua vez, devem poupar água, separar resíduos, consumir com moderação e recusar desperdícios. Contudo, seria injusto transformar a crise ambiental numa soma de culpas individuais, ignorando sistemas de produção e decisões políticas.</p>
+          <p>Proteger o ambiente significa redefinir progresso. Uma sociedade avançada não é a que extrai mais, constrói mais e consome mais, mas a que aprende a viver bem sem destruir aquilo que torna a vida possível.</p>
+        </article>
+        <article class="essay">
+          <h3>手机的利弊</h3>
+          <p>Na China contemporânea, o telemóvel não é apenas um meio de comunicação; tornou-se quase uma chave de acesso à vida social. Com ele pagamos no supermercado, pedimos comida, chamamos transporte, marcamos consultas médicas, estudamos, trabalhamos e mantemos contacto com familiares que vivem noutras províncias. Para muitos cidadãos, sair de casa sem telemóvel é mais inconveniente do que sair sem carteira.</p>
+          <p>As vantagens são inegáveis. O telemóvel facilitou a vida quotidiana, reduziu distâncias e tornou muitos serviços mais eficientes. Um estudante pode assistir a aulas online; um pequeno comerciante pode vender através de plataformas digitais; um idoso pode falar por vídeo com filhos que trabalham em Xangai, Shenzhen ou Pequim. Num país vasto, esta conectividade tem valor social real.</p>
+          <p>No entanto, a dependência também é preocupante. Muitos jovens passam horas em vídeos curtos, jogos e redes sociais, sacrificando sono, leitura e concentração. A fronteira entre trabalho e descanso tornou-se menos clara, pois mensagens profissionais chegam a qualquer hora. Além disso, a recolha constante de dados pessoais cria riscos de vigilância comercial e perda de privacidade.</p>
+          <p>Na minha opinião, o telemóvel deve ser usado como instrumento, não como ambiente total de existência. As escolas deveriam ensinar literacia digital, as famílias criar momentos sem ecrãs e as empresas respeitar melhor o tempo livre. A tecnologia aproxima-nos, mas só a disciplina impede que ela nos domine.</p>
+        </article>
+        <article class="essay">
+          <h3>减少资源浪费</h3>
+          <p>Reduzir o desperdício de recursos é uma das tarefas mais urgentes das sociedades contemporâneas. Durante décadas, muitos países associaram bem-estar à abundância material: comprar mais, trocar mais depressa, usar e deitar fora. Esse modelo criou conforto, mas também produziu excesso de lixo, consumo energético elevado e uma relação irresponsável com os bens disponíveis.</p>
+          <p>O desperdício alimentar é um dos exemplos mais visíveis. Em restaurantes, festas e cantinas, ainda se pede ou prepara mais comida do que o necessário. Para combater esse hábito, é preciso promover porções flexíveis, facilitar o aproveitamento de sobras e educar desde cedo para o valor dos alimentos. Deitar comida fora não é apenas perder dinheiro; é desperdiçar água, solo, energia e trabalho humano.</p>
+          <p>Também o consumo impulsivo deve ser questionado. Promoções constantes, comércio eletrónico e publicidade personalizada levam muitas pessoas a comprar roupas, aparelhos e objetos de que realmente não precisam. Uma solução passa por escolher produtos mais duráveis, reparar em vez de substituir e partilhar bens usados raramente.</p>
+          <p>As políticas públicas são igualmente importantes. Tarifas progressivas de água e eletricidade, incentivos à reciclagem, combate à obsolescência programada e apoio à economia circular podem reduzir desperdícios em grande escala.</p>
+          <p>Reduzir o desperdício não significa regressar à pobreza. Significa compreender que a verdadeira abundância não está em gastar sem pensar, mas em usar com inteligência aquilo que temos.</p>
+        </article>
+        <article class="essay">
+          <h3>地球没有人类会更好吗？</h3>
+          <p>Perguntar se a Terra estaria melhor sem seres humanos é uma forma extrema de reconhecer a gravidade dos danos que provocámos. Florestas destruídas, oceanos poluídos, espécies desaparecidas e alterações climáticas parecem confirmar que a humanidade se tornou uma presença perigosa. À primeira vista, imaginar um planeta sem nós pode parecer imaginar um planeta em recuperação.</p>
+          <p>No entanto, essa conclusão é demasiado rápida. A Terra não é uma entidade moral que possa simplesmente agradecer a nossa ausência. O que existe são ecossistemas complexos, formas de vida vulneráveis e uma espécie humana capaz tanto de destruir como de compreender a destruição que causa. A mesma humanidade que polui rios desenvolve ciência para os recuperar; a mesma civilização que explora recursos cria movimentos de conservação, leis ambientais e tecnologias menos agressivas.</p>
+          <p>O problema, portanto, não é a existência humana em si, mas uma determinada forma de habitar o mundo: expansionista, impaciente e convencida de que a natureza é apenas reserva de matérias-primas. Houve e há comunidades que vivem com impacto mais limitado, reconhecendo dependência em vez de domínio. Isso prova que a relação entre humanidade e Terra não precisa ser necessariamente predatória.</p>
+          <p>Defender que o planeta estaria melhor sem seres humanos pode até parecer ecológico, mas corre o risco de substituir responsabilidade por desistência. A questão mais exigente não é imaginar a nossa ausência; é transformar a nossa presença.</p>
+          <p>A Terra não precisa de uma humanidade desaparecida. Precisa de uma humanidade menos arrogante, capaz de limitar o desejo, corrigir os seus instrumentos e reconhecer que proteger a vida é também proteger-se a si própria.</p>
+        </article>
+        <article class="essay">
+          <h3>职场性别不平等</h3>
+          <p>A desigualdade entre homens e mulheres no trabalho tornou-se menos declarada, mas não necessariamente menos real. Em muitas sociedades, a lei reconhece direitos iguais, as mulheres têm elevada escolaridade e participam ativamente na vida económica. Ainda assim, continuam a enfrentar salários inferiores, menor presença em cargos de decisão e suspeitas injustas relacionadas com maternidade, ambição ou autoridade.</p>
+          <p>Uma parte do problema reside na falsa neutralidade das organizações. Muitas empresas afirmam promover apenas “mérito”, mas avaliam esse mérito segundo padrões construídos historicamente em torno da disponibilidade masculina: longas horas no escritório, mobilidade constante, presença em redes informais e ausência de interrupções familiares. Quando as mulheres acumulam trabalho profissional e responsabilidades domésticas, partem de condições desiguais para competir por critérios aparentemente iguais.</p>
+          <p>A maternidade revela esta contradição de modo evidente. Ter filhos é indispensável à continuidade da sociedade, mas o seu custo profissional recai frequentemente sobre as mulheres. Mesmo antes de serem mães, podem ser vistas como risco futuro. Pelo contrário, a paternidade raramente é interpretada como obstáculo à carreira.</p>
+          <p>Combater esta desigualdade exige medidas concretas: transparência salarial, critérios claros de promoção, licenças parentais equilibradas, serviços de apoio à infância e participação masculina no cuidado familiar. Também é necessário reconhecer estilos diversos de liderança, sem penalizar mulheres por serem firmes nem exigir que imitem modelos masculinos para serem respeitadas.</p>
+          <p>A igualdade profissional não consiste em favorecer mulheres contra homens. Consiste em impedir que talento, competência e esforço sejam filtrados por expectativas injustas. Uma sociedade que desperdiça capacidade por preconceito torna-se menos eficiente, menos democrática e menos inteligente.</p>
+        </article>
+      </section>
+
+      <!-- 投诉信 -->
+      <section id="complaint-letters" class="page">
+        <h2 class="page-title">投诉信</h2>
+        <article class="letter">
+          <h3>产品</h3>
+          <div class="date">Lisboa, 16 de maio de 2026</div>
+          <div class="subject">Assunto: Reclamação relativa ao atendimento automático ineficaz</div>
+          <div class="salutation">Exmos. Senhores,</div>
+          <p>Venho, por este meio, apresentar uma reclamação formal relativa ao apoio prestado pela vossa empresa após a avaria do equipamento que adquiri no passado mês de abril. O aparelho deixou subitamente de funcionar e, desde então, tentei por diversas vezes contactar o serviço de assistência.</p>
+          <p>O problema é que o atendimento está inteiramente entregue a um robô de conversação. Descrevi a avaria com clareza, anexei fotografias e indiquei o número da fatura; ainda assim, o sistema respondeu sempre com mensagens genéricas, incapazes de reconhecer a situação. Mais grave, não me foi disponibilizada qualquer opção para falar com um funcionário, marcar reparação ou apresentar comprovativos adicionais. A cada tentativa, era reenviado para o mesmo menu, o que transformou um problema técnico simples numa experiência frustrante e desrespeitosa.</p>
+          <p>Considero inaceitável que uma empresa venda produtos acompanhados de garantia, mas impeça os clientes de exercerem os seus direitos através de um canal humano efetivo. Solicito, portanto, contacto imediato por parte de um assistente qualificado, reparação ou substituição do equipamento e compensação pelo tempo perdido.</p>
+          <p>Caso não receba resposta satisfatória no prazo de cinco dias úteis, encaminharei a situação para as entidades competentes de defesa do consumidor.</p>
+          <div class="closing">Com os melhores cumprimentos,</div>
+          <div class="signature">Rui Almeida</div>
+        </article>
+        <article class="letter">
+          <h3>官方</h3>
+          <div class="date">Braga, 17 de maio de 2026</div>
+          <div class="subject">Assunto: Pedido de intervenção municipal devido a ruído noturno</div>
+          <div class="salutation">Exmo. Senhor Presidente da Câmara Municipal,</div>
+          <p>Resido na Rua das Laranjeiras e venho expor uma situação que tem afetado gravemente a qualidade de vida dos moradores. Há cerca de dois meses abriu, junto aos prédios habitacionais, um bar que funciona até altas horas da madrugada. Desde então, a música amplificada, as conversas na via pública e a circulação constante de veículos tornaram o descanso noturno praticamente impossível.</p>
+          <p>Não se trata de intolerância perante a atividade económica. Compreendemos que a cidade precisa de espaços de lazer. Contudo, quando o entretenimento de alguns impede crianças, idosos e trabalhadores de dormir, deixa de haver convivência equilibrada. Já contactámos informalmente os responsáveis do estabelecimento, mas as promessas de reduzir o volume não produziram qualquer efeito. A situação tem ainda gerado insegurança, pois se acumulam garrafas, lixo e discussões à saída do bar.</p>
+          <p>Solicito, por isso, que a autarquia realize medições de ruído, fiscalize o cumprimento dos horários legais, imponha limites ao som exterior e reforce a limpeza e vigilância da zona. Seria igualmente útil promover uma reunião entre moradores, proprietários e serviços municipais.</p>
+          <p>A intervenção da Câmara é indispensável para compatibilizar lazer, trabalho e direito ao repouso.</p>
+          <div class="closing">Com elevada consideração,</div>
+          <div class="signature">Carla Nunes</div>
+        </article>
+      </section>
+
+      <!-- 叙述文 -->
+      <section id="narrative-essays" class="page">
+        <h2 class="page-title">叙述文</h2>
+        <article class="essay">
+          <h3>流浪者送餐</h3>
+          <p>A experiência de voluntariado que mais me marcou ocorreu num centro de apoio a pessoas sem-abrigo. Inscrevi-me inicialmente por curiosidade e, confesso, com alguma ingenuidade: imaginava que bastaria distribuir refeições para “ajudar”. Depressa percebi que a ajuda verdadeira começa quando se abandona a vontade de salvar alguém e se aprende a escutar.</p>
+          <p>Todas as quartas-feiras preparávamos sopa, organizávamos roupa e acompanhávamos os utentes em pequenas tarefas administrativas. O mais difícil não era o trabalho físico, mas enfrentar histórias de solidão, doença mental, desemprego e ruturas familiares. Recordo um homem que recusava sempre cobertores, mas pedia livros policiais. Essa preferência obrigou-me a vê-lo não como “um sem-abrigo”，mas como uma pessoa com gosto, memória e humor.</p>
+          <p>O voluntariado ensinou-me também os seus limites. A generosidade individual é necessária, porém não substitui políticas de habitação, saúde e reinserção profissional. Muitas vezes saía do centro com a sensação contraditória de ter feito pouco e, ainda assim, de ter feito algo indispensável.</p>
+          <p>Hoje considero que o voluntariado não deve alimentar superioridade moral. Deve aproximar realidades que a cidade tende a separar, sem transformar a pobreza em espetáculo nem o sofrimento alheio em currículo pessoal. Ao servir refeições, aprendi sobretudo a receber: recebi uma consciência mais concreta da dignidade humana e da fragilidade que todos partilhamos.</p>
+        </article>
+        <article class="essay">
+          <h3>移民家庭阅读</h3>
+          <p>A experiência de voluntariado que mais me marcou ocorreu durante um programa de apoio a crianças de famílias migrantes. Inscrevi-me pensando que iria simplesmente ajudar nos trabalhos de casa e organizar atividades de leitura. No entanto, depressa percebi que o verdadeiro desafio não era explicar exercícios, mas compreender a insegurança silenciosa de crianças que viviam entre a escola, a ausência dos pais ocupados e a sensação de não pertencer plenamente a lugar nenhum.</p>
+          <p>Todas as semanas, acompanhava um pequeno grupo numa sala comunitária. Havia alunos muito inteligentes que, apesar disso, evitavam falar, com medo de errar ou de serem ridicularizados. Recordo particularmente uma menina que raramente levantava os olhos do caderno. Um dia, depois de ler em voz alta um texto simples, sorriu como se tivesse conquistado algo enorme. Nesse momento compreendi que o voluntariado não consiste apenas em oferecer tempo; consiste em devolver confiança.</p>
+          <p>Essa experiência ensinou-me também a desconfiar da generosidade fácil. A ajuda individual é necessária, mas não resolve sozinha problemas ligados à desigualdade educativa, à mobilidade social e à falta de acompanhamento familiar. Se não houver políticas públicas adequadas, o voluntariado corre o risco de remendar, semana após semana, aquilo que a sociedade continua a produzir.</p>
+          <p>Ainda assim, não considero esse esforço inútil. Pelo contrário, aprendi que uma intervenção pequena pode ter valor quando respeita a dignidade do outro. Saí desse programa menos ingénua e mais consciente: ajudar não é salvar alguém, mas caminhar durante algum tempo ao seu lado.</p>
+        </article>
+        <article class="essay">
+          <h3>社区托班</h3>
+          <p>A experiência de voluntariado que mais me marcou ocorreu num centro comunitário durante as férias de verão. O bairro onde vivo não é pobre, mas muitas famílias enfrentam uma dificuldade muito concreta: os pais trabalham durante o dia inteiro, os avós já não têm energia para acompanhar as crianças, e as férias escolares transformam-se facilmente num período de ansiedade. Por isso, a comunidade organizou uma pequena sala de estudo e atividades, onde alguns estudantes universitários, incluindo eu, ajudavam crianças do ensino básico.</p>
+          <p>No início, pensei que a nossa função seria simples: vigiar, explicar exercícios e manter as crianças ocupadas. Porém, ao longo das semanas, percebi que o problema era mais profundo. Algumas crianças tinham explicadores privados e horários cheios; outras passavam a mayor parte do dia com um telemóvel na mão, à espera de que os pais regressassem. Todas, de formas diferentes, pareciam viver sob uma pressão que não sabiam nomear. Recordo um rapaz que dizia sempre que “não era bom a nada”，embora resolvesse rapidamente os problemas de matemática. O que lhe faltava não era inteligência, mas alguém que o escutasse sem o comparar imediatamente com outros.</p>
+          <p>A partir desse momento, deixei de ver o voluntariado como uma ajuda unilateral. Num ambiente social em que adultos estão cansados, crianças competem cedo demais e a educação se transforma frequentemente em corrida, oferecer tempo, paciência e atenção já é uma forma de intervenção. Naturalmente, um programa comunitário não substitui políticas públicas de apoio às famílias, nem resolve a desigualdade educativa. Mas pode criar um espaço menos agressivo, onde uma criança seja vista antes de ser avaliada.</p>
+          <p>Saí dessa experiência com uma ideia mais humilde de utilidade. Ajudar não é necessariamente mudar a vida de alguém de modo grandioso; às vezes, é impedir que, durante algumas horas, essa pessoa se sinta sozinha dentro de uma sociedade demasiado apressada.</p>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div id="add-modal" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
+      <h3 id="add-modal-title">新增条目</h3>
+      <div class="field-grid">
+        <div class="form-group">
+          <label for="add-section">分类</label>
+          <select id="add-section" class="add-select" onchange="renderAddForm()"></select>
+        </div>
+        <div class="form-group">
+          <label for="add-placement">添加位置</label>
+          <select id="add-placement" class="add-select"></select>
+          <div class="add-note" id="add-placement-note"></div>
+        </div>
+        <div id="add-kind-wrap" class="form-group field-full" style="display:none;">
+          <label for="add-kind">素材类型</label>
+          <select id="add-kind" class="add-select" onchange="renderAddFields()"></select>
+        </div>
+      </div>
+      <div id="add-fields"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn" onclick="closeAddDialog()">取消</button>
+        <button type="button" class="btn btn-save" onclick="addNewEntry()">添加</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="annotate-toolbar" class="annotate-toolbar" aria-hidden="true">
+    <button type="button" onclick="applyAnnotationFromToolbar('hl-text')">高亮</button>
+    <button type="button" class="btn-note" onclick="applyAnnotationFromToolbar('note-text')">批注</button>
+    <button type="button" class="btn-cancel" onclick="hideAnnotateToolbar(true)">取消</button>
+  </div>
+
+  <script>
+    let editMode = false;
+    let entryIdCounter = 0;
+    let savedSelectionRange = null;
+    let selectionToolbarTimer = null;
+
+    /**
+     * 1. 切换逻辑
+     */
+    function switchTab(sectionId, element) {
+      hideAnnotateToolbar(true);
+      // 隐藏所有页面
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(p => p.classList.remove('active'));
+
+      // 取消导航高亮
+      const navLinks = document.querySelectorAll('#nav-menu a');
+      navLinks.forEach(l => l.classList.remove('active'));
+
+      // 显示对应页面
+      const target = document.getElementById(sectionId);
+      if (target) target.classList.add('active');
+
+      // 增加当前导航高亮
+      const activeLink = element || document.querySelector('#nav-menu a[data-section="' + sectionId + '"]');
+      if (activeLink) activeLink.classList.add('active');
+
+      window.scrollTo(0, 0); // 切换后回到顶部
+    }
+
+    /**
+     * 2. 搜索功能
+     */
+    function toggleSearchPanel() {
+      hideAnnotateToolbar(true);
+      const panel = document.getElementById('search-panel');
+      const btn = document.getElementById('search-toggle');
+      const open = !panel.classList.contains('open');
+      panel.classList.toggle('open', open);
+      btn.classList.toggle('active', open);
+      if (open) setTimeout(() => document.getElementById('search-input').focus(), 50);
+    }
+
+    function doGlobalSearch() {
+      clearSearchMarks();
+      const input = document.getElementById('search-input');
+      const resultsBox = document.getElementById('search-results');
+      const query = input.value.trim();
+      resultsBox.innerHTML = '';
+
+      if (!query) {
+        resultsBox.textContent = '请输入要搜索的关键词。';
+        return;
+      }
+
+      ensureEntryIds();
+      const entries = document.querySelectorAll('#editable-area .page .item, #editable-area .page .letter, #editable-area .page .essay');
+      const matches = [];
+      let totalCount = 0;
+      const qLower = query.toLowerCase();
+
+      entries.forEach(entry => {
+        const text = entry.textContent.replace(/\s+/g, ' ').trim();
+        if (text.toLowerCase().includes(qLower)) {
+          const count = highlightTextInElement(entry, query);
+          totalCount += count;
+          const page = entry.closest('.page');
+          const pageTitle = page ? (page.querySelector('.page-title')?.textContent.trim() || page.id) : '';
+          const title = entry.querySelector('h3, .phrase')?.textContent.trim() || pageTitle;
+          const index = text.toLowerCase().indexOf(qLower);
+          const start = Math.max(0, index - 35);
+          const end = Math.min(text.length, index + query.length + 55);
+          const snippet = (start > 0 ? '…' : '') + text.slice(start, end) + (end < text.length ? '…' : '');
+          matches.push({
+            entryId: entry.dataset.entryId,
+            pageId: page ? page.id : '',
+            pageTitle,
+            title,
+            snippet,
+            count
+          });
+        }
+      });
+
+      if (!matches.length) {
+        resultsBox.textContent = '没有找到匹配内容。';
+        return;
+      }
+
+      const summary = document.createElement('div');
+      summary.className = 'edit-hint';
+      summary.textContent = '找到 ' + matches.length + ' 个条目，共 ' + totalCount + ' 处匹配。点击结果可跳转。';
+      resultsBox.appendChild(summary);
+
+      matches.forEach(match => {
+        const link = document.createElement('a');
+        link.href = 'javascript:void(0)';
+        link.className = 'search-result';
+        link.onclick = () => goToSearchResult(match.pageId, match.entryId);
+        link.innerHTML = '<strong>' + escapeHtml(match.pageTitle) + ' · ' + escapeHtml(match.title) + '</strong>' +
+          '<br><span>' + escapeHtml(match.snippet) + '</span>' +
+          '<br><small>匹配 ' + match.count + ' 处</small>';
+        resultsBox.appendChild(link);
+      });
+    }
+
+    function highlightTextInElement(element, query) {
+      const regex = new RegExp(escapeRegExp(query), 'gi');
+      const textNodes = [];
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          const parent = node.parentElement;
+          if (!parent || parent.closest('.entry-check')) return NodeFilter.FILTER_REJECT;
+          if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          if (!node.nodeValue.toLowerCase().includes(query.toLowerCase())) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+      let count = 0;
+      textNodes.forEach(node => {
+        const text = node.nodeValue;
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        text.replace(regex, (match, offset) => {
+          if (offset > lastIndex) fragment.appendChild(document.createTextNode(text.slice(lastIndex, offset)));
+          const mark = document.createElement('mark');
+          mark.className = 'search-mark';
+          mark.textContent = match;
+          fragment.appendChild(mark);
+          lastIndex = offset + match.length;
+          count++;
+        });
+        if (lastIndex < text.length) fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+        node.parentNode.replaceChild(fragment, node);
+      });
+      return count;
+    }
+
+    function goToSearchResult(pageId, entryId) {
+      const link = document.querySelector('#nav-menu a[data-section="' + pageId + '"]');
+      switchTab(pageId, link);
+      setTimeout(() => {
+        const target = document.querySelector('[data-entry-id="' + entryId + '"]');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.classList.add('entry-selected');
+          setTimeout(() => target.classList.remove('entry-selected'), 1200);
+        }
+      }, 80);
+    }
+
+    function clearSearchResults() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('search-results').innerHTML = '';
+      clearSearchMarks();
+    }
+
+    function clearSearchMarks() {
+      document.querySelectorAll('.search-mark').forEach(mark => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      });
+    }
+
+    /**
+     * 3. 编辑模式：多选删除 / 手动排序 / 按区块新增
+     */
+    function toggleEditMode() {
+      hideAnnotateToolbar(true);
+      editMode = !editMode;
+      const area = document.getElementById('editable-area');
+      const panel = document.getElementById('edit-panel');
+      const btn = document.getElementById('edit-toggle');
+      area.classList.toggle('edit-mode', editMode);
+      panel.classList.toggle('open', editMode);
+      btn.classList.toggle('active', editMode);
+      btn.textContent = editMode ? '完成' : '编辑';
+
+      if (editMode) {
+        prepareEditControls();
+      } else {
+        clearEntrySelection();
+        saveToLocal();
+      }
+    }
+
+    function prepareEditControls() {
+      ensureEntryIds();
+      const entries = document.querySelectorAll('#editable-area .page .item, #editable-area .page .letter, #editable-area .page .essay');
+      entries.forEach(entry => {
+        entry.classList.add('editable-entry');
+        if (!entry.querySelector(':scope > .entry-check')) {
+          const label = document.createElement('label');
+          label.className = 'entry-check';
+          label.innerHTML = '<input type="checkbox" class="entry-select" onchange="syncEntrySelected(this)"> 选择';
+          entry.insertBefore(label, entry.firstChild);
+        }
+        if (!entry.querySelector(':scope > .entry-sort-controls')) {
+          const tools = document.createElement('div');
+          tools.className = 'entry-sort-controls';
+          tools.innerHTML = '<button type="button" title="上移" onclick="moveSingleEntry(this, \'up\')">↑</button><button type="button" title="下移" onclick="moveSingleEntry(this, \'down\')">↓</button>';
+          entry.insertBefore(tools, entry.firstChild);
+        }
+      });
+      updateSelectedCount();
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!editMode) return;
+      const area = document.getElementById('editable-area');
+      const entry = e.target.closest('.editable-entry');
+      if (!entry || !area.contains(entry)) return;
+      if (e.target.closest('.entry-check, .entry-sort-controls')) {
+        setTimeout(updateSelectedCount, 0);
+        return;
+      }
+      e.preventDefault();
+      const checkbox = entry.querySelector(':scope > .entry-check .entry-select');
+      if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        syncEntrySelected(checkbox);
+      }
+    });
+
+    function syncEntrySelected(checkbox) {
+      const entry = checkbox.closest('.editable-entry');
+      if (entry) entry.classList.toggle('entry-selected', checkbox.checked);
+      updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+      const count = document.querySelectorAll('#editable-area .entry-select:checked').length;
+      const box = document.getElementById('edit-count');
+      if (box) box.textContent = '已选 ' + count + ' 项';
+    }
+
+    function clearEntrySelection() {
+      document.querySelectorAll('#editable-area .entry-select').forEach(cb => cb.checked = false);
+      document.querySelectorAll('#editable-area .entry-selected').forEach(el => el.classList.remove('entry-selected'));
+      updateSelectedCount();
+    }
+
+    function getSelectedEntries() {
+      return Array.from(document.querySelectorAll('#editable-area .entry-select:checked'))
+        .map(cb => cb.closest('.editable-entry'))
+        .filter(Boolean);
+    }
+
+    function deleteSelectedEntries() {
+      const selected = getSelectedEntries();
+      if (!selected.length) {
+        alert('请先选择要删除的条目。');
+        return;
+      }
+      if (!confirm('确定删除选中的 ' + selected.length + ' 个条目吗？')) return;
+      selected.forEach(entry => entry.remove());
+      updateSelectedCount();
+      saveToLocal();
+      alert('已删除选中条目。');
+    }
+
+    function isEditableEntry(el) {
+      return el && el.matches && el.matches('.item, .letter, .essay');
+    }
+
+    function isSectionBoundary(el) {
+      return el && el.matches && el.matches('.page-title, .section-title');
+    }
+
+    function previousEntryInSameBlock(entry) {
+      let node = entry.previousElementSibling;
+      while (node) {
+        if (isSectionBoundary(node)) return null;
+        if (isEditableEntry(node)) return node;
+        node = node.previousElementSibling;
+      }
+      return null;
+    }
+
+    function nextEntryInSameBlock(entry) {
+      let node = entry.nextElementSibling;
+      while (node) {
+        if (isSectionBoundary(node)) return null;
+        if (isEditableEntry(node)) return node;
+        node = node.nextElementSibling;
+      }
+      return null;
+    }
+
+    function firstEntryInSameBlock(entry) {
+      let first = entry;
+      let prev = previousEntryInSameBlock(first);
+      while (prev) {
+        first = prev;
+        prev = previousEntryInSameBlock(first);
+      }
+      return first;
+    }
+
+    function lastEntryInSameBlock(entry) {
+      let last = entry;
+      let next = nextEntryInSameBlock(last);
+      while (next) {
+        last = next;
+        next = nextEntryInSameBlock(last);
+      }
+      return last;
+    }
+
+    function moveSingleEntry(button, direction) {
+      const entry = button.closest('.editable-entry');
+      if (!entry) return;
+      moveEntries([entry], direction);
+    }
+
+    function moveSelectedEntries(direction) {
+      const selected = getSelectedEntries();
+      if (!selected.length) {
+        alert('请先选择要排序的条目。');
+        return;
+      }
+      moveEntries(selected, direction);
+    }
+
+    function moveEntries(entries, direction) {
+      const selectedSet = new Set(entries);
+      if (direction === 'up') {
+        entries.forEach(entry => {
+          const prev = previousEntryInSameBlock(entry);
+          if (prev && !selectedSet.has(prev)) entry.parentNode.insertBefore(entry, prev);
+        });
+      }
+      if (direction === 'down') {
+        entries.slice().reverse().forEach(entry => {
+          const next = nextEntryInSameBlock(entry);
+          if (next && !selectedSet.has(next)) next.parentNode.insertBefore(next, entry);
+        });
+      }
+      if (direction === 'top') {
+        entries.slice().reverse().forEach(entry => {
+          const first = firstEntryInSameBlock(entry);
+          if (first && first !== entry) entry.parentNode.insertBefore(entry, first);
+        });
+      }
+      if (direction === 'bottom') {
+        entries.forEach(entry => {
+          const last = lastEntryInSameBlock(entry);
+          if (last && last !== entry) last.parentNode.insertBefore(entry, last.nextSibling);
+        });
+      }
+      saveToLocal();
+    }
+
+    const sectionNames = {
+      'materials': '作文素材',
+      'suggestion-letters': '建议信',
+      'proposal-letters': '提案信',
+      'argumentative-essays': '议论文',
+      'complaint-letters': '投诉信',
+      'narrative-essays': '叙述文'
+    };
+
+    function openAddDialog() {
+      hideAnnotateToolbar(true);
+      const select = document.getElementById('add-section');
+      select.innerHTML = '';
+      document.querySelectorAll('#nav-menu a').forEach(link => {
+        const option = document.createElement('option');
+        option.value = link.dataset.section;
+        option.textContent = link.textContent.trim();
+        if (link.classList.contains('active')) option.selected = true;
+        select.appendChild(option);
+      });
+      renderAddForm();
+      const modal = document.getElementById('add-modal');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+        const firstInput = modal.querySelector('#add-fields input, #add-fields textarea');
+        if (firstInput) firstInput.focus();
+      }, 50);
+    }
+
+    function closeAddDialog() {
+      const modal = document.getElementById('add-modal');
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderAddForm() {
+      const sectionId = document.getElementById('add-section').value;
+      const kindWrap = document.getElementById('add-kind-wrap');
+      const kindSelect = document.getElementById('add-kind');
+      kindSelect.innerHTML = '';
+      if (sectionId === 'materials') {
+        kindWrap.style.display = '';
+        const kinds = [
+          ['phrase', '高级词组：词组 + 中文释义 + 例句'],
+          ['sentence', '句式类型：句子 + 中文翻译'],
+          ['proverb', '谚语俗语：谚语 + 中文释义 + 例句']
+        ];
+        kinds.forEach(([value, label]) => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = label;
+          kindSelect.appendChild(option);
+        });
+      } else {
+        kindWrap.style.display = 'none';
+      }
+      renderAddPlacement();
+      renderAddFields();
+    }
+
+    function renderAddPlacement() {
+      const sectionId = document.getElementById('add-section').value;
+      const select = document.getElementById('add-placement');
+      const note = document.getElementById('add-placement-note');
+      const section = document.getElementById(sectionId);
+      select.innerHTML = '';
+      if (!section) return;
+
+      if (sectionId === 'materials') {
+        Array.from(section.querySelectorAll(':scope > .section-title')).forEach((title, index) => {
+          const option = document.createElement('option');
+          option.value = 'block:' + index;
+          option.textContent = '放到「' + title.textContent.trim() + '」末尾';
+          select.appendChild(option);
+        });
+        const kind = document.getElementById('add-kind').value;
+        const defaultText = kind === 'sentence' ? '句式类型' : (kind === 'proverb' ? '谚语俗语' : '高级词组');
+        const defaultIndex = Array.from(section.querySelectorAll(':scope > .section-title')).findIndex(h => h.textContent.trim() === defaultText);
+        if (defaultIndex >= 0) select.value = 'block:' + defaultIndex;
+        note.textContent = '作文素材会按所选小区块插入，避免词组、句式和谚语混在一起。';
+      } else {
+        const endOption = document.createElement('option');
+        endOption.value = 'end';
+        endOption.textContent = '放到「' + (sectionNames[sectionId] || '当前分类') + '」末尾';
+        select.appendChild(endOption);
+        Array.from(section.querySelectorAll(':scope > .letter, :scope > .essay')).forEach(entry => {
+          const option = document.createElement('option');
+          option.value = 'after:' + entry.dataset.entryId;
+          option.textContent = '放在「' + getEntryTitle(entry) + '」后面';
+          select.appendChild(option);
+        });
+        note.textContent = '信件和文章会按条目位置插入，可放在某篇后面或分类末尾。';
+      }
+    }
+
+    function renderAddFields() {
+      const sectionId = document.getElementById('add-section').value;
+      const kind = document.getElementById('add-kind').value;
+      const fields = document.getElementById('add-fields');
+      fields.innerHTML = '';
+      if (sectionId === 'materials') {
+        if (kind === 'sentence') {
+          fields.innerHTML = fieldHtml('add-phrase', '葡语句子', 'input', '例如：Regular não é travar; é orientar.') +
+            fieldHtml('add-translation', '中文翻译', 'textarea', '输入对应中文翻译');
+        } else {
+          const mainLabel = kind === 'proverb' ? '葡语谚语/俗语' : '葡语词组';
+          const mainPlaceholder = kind === 'proverb' ? '例如：Mais vale prevenir do que remediar.' : '例如：lançar luz sobre';
+          fields.innerHTML = fieldHtml('add-phrase', mainLabel, 'input', mainPlaceholder) +
+            fieldHtml('add-meaning', '中文释义', 'input', '例如：揭示 / 照亮') +
+            fieldHtml('add-example', '葡语例句', 'textarea', '输入例句');
+        }
+      } else if (sectionId.includes('letters')) {
+        fields.innerHTML = '<div class="field-grid">' +
+          fieldHtml('add-title', '信件标题', 'input', '例如：关于图书馆的建议', 'field-full') +
+          fieldHtml('add-date', '日期', 'input', '例如：Lisboa, 18 de maio de 2026') +
+          fieldHtml('add-subject', 'Assunto', 'input', '例如：Assunto: ...') +
+          fieldHtml('add-salutation', '称呼', 'input', '例如：Exmo. Senhor Presidente da Câmara Municipal,', 'field-full') +
+          fieldHtml('add-body', '正文段落', 'textarea', '每段一行，添加后会自动变成多个段落', 'field-full') +
+          fieldHtml('add-closing', '结尾敬语', 'input', '例如：Com os melhores cumprimentos,') +
+          fieldHtml('add-signature', '署名', 'input', '例如：Ana Martins') +
+          '</div>';
+      } else {
+        fields.innerHTML = fieldHtml('add-title', '文章标题', 'input', '例如：手机的利弊') +
+          fieldHtml('add-body', '正文段落', 'textarea', '每段一行，添加后会自动变成多个段落');
+      }
+      renderAddPlacement();
+    }
+
+    function fieldHtml(id, label, type, placeholder, wrapClass = '') {
+      const klass = wrapClass ? 'form-group ' + wrapClass : 'form-group';
+      const inputClass = type === 'textarea' ? 'add-textarea' : 'add-input';
+      if (type === 'textarea') {
+        return '<div class="' + klass + '"><label for="' + id + '">' + label + '</label><textarea id="' + id + '" class="' + inputClass + '" placeholder="' + escapeHtml(placeholder) + '"></textarea></div>';
+      }
+      return '<div class="' + klass + '"><label for="' + id + '">' + label + '</label><input id="' + id + '" class="' + inputClass + '" type="text" placeholder="' + escapeHtml(placeholder) + '" /></div>';
+    }
+
+    function formValue(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    }
+
+    function addNewEntry() {
+      const sectionId = document.getElementById('add-section').value;
+      const placement = document.getElementById('add-placement').value;
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+
+      const article = buildNewEntry(sectionId);
+      if (!article) return;
+
+      insertEntryAt(section, article, placement);
+      ensureEntryIds();
+      if (editMode) prepareEditControls();
+      saveToLocal();
+      closeAddDialog();
+
+      const link = document.querySelector('#nav-menu a[data-section="' + sectionId + '"]');
+      switchTab(sectionId, link);
+      setTimeout(() => article.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+    }
+
+    function buildNewEntry(sectionId) {
+      if (sectionId === 'materials') {
+        const kind = document.getElementById('add-kind').value;
+        const phrase = formValue('add-phrase');
+        const meaning = formValue('add-meaning');
+        const example = formValue('add-example');
+        const translation = formValue('add-translation');
+        if (!phrase && !meaning && !example && !translation) {
+          alert('请至少填写一项素材内容。');
+          return null;
+        }
+        const article = document.createElement('article');
+        article.className = 'item';
+        if (kind === 'sentence') {
+          if (phrase) article.appendChild(htmlBlock('div', 'phrase', phrase));
+          if (translation) article.appendChild(htmlBlock('div', 'translation', translation));
+        } else {
+          if (phrase || meaning) {
+            const div = document.createElement('div');
+            div.className = 'phrase';
+            div.appendChild(document.createTextNode(phrase));
+            if (meaning) {
+              div.appendChild(document.createTextNode(' '));
+              const span = document.createElement('span');
+              span.className = 'meaning';
+              span.textContent = meaning;
+              div.appendChild(span);
+            }
+            article.appendChild(div);
+          }
+          if (example) article.appendChild(htmlBlock('div', 'example', example));
+        }
+        return article;
+      }
+
+      if (sectionId.includes('letters')) {
+        const title = formValue('add-title');
+        const date = formValue('add-date');
+        const subject = formValue('add-subject');
+        const salutation = formValue('add-salutation');
+        const body = formValue('add-body');
+        const closing = formValue('add-closing');
+        const signature = formValue('add-signature');
+        if (!title && !date && !subject && !salutation && !body && !closing && !signature) {
+          alert('请至少填写一项信件内容。');
+          return null;
+        }
+        const article = document.createElement('article');
+        article.className = 'letter';
+        if (title) article.appendChild(htmlBlock('h3', '', title));
+        if (date) article.appendChild(htmlBlock('div', 'date', date));
+        if (subject) article.appendChild(htmlBlock('div', 'subject', subject));
+        if (salutation) article.appendChild(htmlBlock('div', 'salutation', salutation));
+        splitLines(body).forEach(line => article.appendChild(htmlBlock('p', '', line)));
+        if (closing) article.appendChild(htmlBlock('div', 'closing', closing));
+        if (signature) article.appendChild(htmlBlock('div', 'signature', signature));
+        return article;
+      }
+
+      const title = formValue('add-title');
+      const body = formValue('add-body');
+      if (!title && !body) {
+        alert('请至少填写标题或正文。');
+        return null;
+      }
+      const article = document.createElement('article');
+      article.className = 'essay';
+      if (title) article.appendChild(htmlBlock('h3', '', title));
+      splitLines(body).forEach(line => article.appendChild(htmlBlock('p', '', line)));
+      return article;
+    }
+
+    function insertEntryAt(section, article, placement) {
+      if (placement && placement.startsWith('block:')) {
+        const index = Number(placement.split(':')[1]);
+        const titles = Array.from(section.querySelectorAll(':scope > .section-title'));
+        const currentTitle = titles[index];
+        const nextTitle = titles[index + 1];
+        if (nextTitle) section.insertBefore(article, nextTitle);
+        else section.appendChild(article);
+        return;
+      }
+      if (placement && placement.startsWith('after:')) {
+        const entryId = placement.slice(6);
+        const target = section.querySelector('[data-entry-id="' + entryId + '"]');
+        if (target) {
+          section.insertBefore(article, target.nextSibling);
+          return;
+        }
+      }
+      section.appendChild(article);
+    }
+
+    function getEntryTitle(entry) {
+      const title = entry.querySelector('h3, .phrase');
+      const text = title ? title.textContent.trim().replace(/\s+/g, ' ') : '未命名条目';
+      return text.length > 26 ? text.slice(0, 26) + '…' : text;
+    }
+
+    function htmlBlock(tag, className, text) {
+      const el = document.createElement(tag);
+      if (className) el.className = className;
+      el.textContent = text;
+      return el;
+    }
+
+    function splitLines(text) {
+      return text ? text.split(/\n+/).map(s => s.trim()).filter(Boolean) : [];
+    }
+
+    function ensureEntryIds() {
+      document.querySelectorAll('#editable-area .page .item, #editable-area .page .letter, #editable-area .page .essay').forEach(entry => {
+        if (!entry.dataset.entryId) {
+          entryIdCounter += 1;
+          entry.dataset.entryId = 'entry-' + Date.now() + '-' + entryIdCounter;
+        }
+      });
+    }
+
+    function syncActiveNavFromPage() {
+      const activePage = document.querySelector('#editable-area .page.active') || document.querySelector('#editable-area .page');
+      if (!activePage) return;
+      const navLinks = document.querySelectorAll('#nav-menu a');
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector('#nav-menu a[data-section="' + activePage.id + '"]');
+      if (link) link.classList.add('active');
+    }
+
+    /**
+     * 4. 高亮/笔记功能
+     * - 桌面端：保留原来的划词后 confirm / prompt 使用习惯
+     * - 移动端：长按选词后显示底部工具条，方便高亮或批注
+     */
+    let lastTouchEndTime = 0;
+
+    function isTouchAnnotationDevice() {
+      return window.matchMedia('(hover: none) and (pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+    }
+
+    function shouldIgnoreAnnotationTarget(target) {
+      return editMode || !target || !!target.closest('.toc, .action-bar, .modal, .annotate-toolbar, button, input, textarea, select');
+    }
+
+    function selectionIsInsideEditableArea(selection) {
+      const area = document.getElementById('editable-area');
+      return area && selection && selection.rangeCount &&
+        area.contains(selection.anchorNode) && area.contains(selection.focusNode);
+    }
+
+    function captureSelectionForAnnotation() {
+      const selection = window.getSelection();
+      const text = selection ? selection.toString().trim() : '';
+      if (!text || !selectionIsInsideEditableArea(selection)) return false;
+      savedSelectionRange = selection.getRangeAt(0).cloneRange();
+      return true;
+    }
+
+    function handleDesktopAnnotation(e) {
+      // 触屏设备可能会额外触发 mouseup，这里避免和移动端工具条重复。
+      if (isTouchAnnotationDevice() || Date.now() - lastTouchEndTime < 800) return;
+      if (shouldIgnoreAnnotationTarget(e.target)) return;
+
+      const selection = window.getSelection();
+      const text = selection ? selection.toString().trim() : '';
+      if (!text || !selectionIsInsideEditableArea(selection)) return;
+
+      setTimeout(() => {
+        const currentSelection = window.getSelection();
+        if (!currentSelection || !currentSelection.toString().trim() || !selectionIsInsideEditableArea(currentSelection)) return;
+
+        const mode = confirm('点击 [确定] 高亮选择内容，点击 [取消] 添加批注。');
+        if (mode) {
+          applyStyle('hl-text');
+        } else {
+          const note = prompt('请输入笔记内容:');
+          if (note) applyStyle('note-text', note);
+        }
+        currentSelection.removeAllRanges();
+      }, 10);
+    }
+
+    function scheduleMobileAnnotateToolbar(e) {
+      lastTouchEndTime = Date.now();
+      if (!isTouchAnnotationDevice() || shouldIgnoreAnnotationTarget(e.target)) return;
+      clearTimeout(selectionToolbarTimer);
+      selectionToolbarTimer = setTimeout(() => {
+        if (captureSelectionForAnnotation()) showAnnotateToolbar();
+        else hideAnnotateToolbar(false);
+      }, 260);
+    }
+
+    document.addEventListener('mouseup', handleDesktopAnnotation);
+    document.addEventListener('touchend', scheduleMobileAnnotateToolbar, { passive: true });
+    document.addEventListener('keyup', function(e) {
+      if (e.key === 'Escape') hideAnnotateToolbar(true);
+    });
+    document.addEventListener('selectionchange', function() {
+      if (!isTouchAnnotationDevice()) return;
+      clearTimeout(selectionToolbarTimer);
+      selectionToolbarTimer = setTimeout(() => {
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim() && selectionIsInsideEditableArea(selection)) {
+          captureSelectionForAnnotation();
+          showAnnotateToolbar();
+        }
+      }, 320);
+    });
+
+    document.addEventListener('click', function(e) {
+      const noteEl = e.target.closest('.note-text');
+      const selectedText = window.getSelection() ? window.getSelection().toString().trim() : '';
+      if (noteEl && !editMode && noteEl.dataset.note && !selectedText) {
+        alert('笔记: ' + noteEl.dataset.note);
+      }
+    });
+
+    function showAnnotateToolbar() {
+      const toolbar = document.getElementById('annotate-toolbar');
+      if (!toolbar || !savedSelectionRange) return;
+      toolbar.classList.add('open');
+      toolbar.setAttribute('aria-hidden', 'false');
+
+      if (isTouchAnnotationDevice() || window.matchMedia('(max-width: 720px)').matches) return;
+
+      const rect = savedSelectionRange.getBoundingClientRect();
+      if (!rect || (!rect.width && !rect.height)) return;
+      const toolbarWidth = toolbar.offsetWidth || 220;
+      const left = Math.min(Math.max(rect.left + rect.width / 2, toolbarWidth / 2 + 8), window.innerWidth - toolbarWidth / 2 - 8);
+      const top = Math.max(8, rect.top - toolbar.offsetHeight - 10);
+      toolbar.style.left = left + 'px';
+      toolbar.style.top = top + 'px';
+    }
+
+    function hideAnnotateToolbar(clearSelection) {
+      const toolbar = document.getElementById('annotate-toolbar');
+      if (toolbar) {
+        toolbar.classList.remove('open');
+        toolbar.setAttribute('aria-hidden', 'true');
+      }
+      if (clearSelection) {
+        savedSelectionRange = null;
+        const selection = window.getSelection();
+        if (selection) selection.removeAllRanges();
+      }
+    }
+
+    function applyAnnotationFromToolbar(className) {
+      if (!savedSelectionRange) return;
+      let note = null;
+      if (className === 'note-text') {
+        note = prompt('请输入笔记内容:');
+        if (!note) return;
+      }
+      applyStyleToRange(savedSelectionRange, className, note);
+      hideAnnotateToolbar(true);
+    }
+
+    function applyStyle(className, note = null) {
+      const selection = window.getSelection();
+      if (!selection || !selection.rangeCount) return;
+      applyStyleToRange(selection.getRangeAt(0), className, note);
+    }
+
+    function applyStyleToRange(range, className, note = null) {
+      if (!range) return;
+      const span = document.createElement('span');
+      span.className = className;
+      if (note) {
+        span.setAttribute('data-note', note);
+        span.setAttribute('title', '笔记: ' + note);
+      }
+      try {
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        saveToLocal();
+      } catch (e) { console.error('无法修改此处内容', e); }
+    }
+
+    /**
+     * 5. 数据持久化
+     */
+    function getCleanEditableHTML() {
+      clearSearchMarks();
+      const area = document.getElementById('editable-area');
+      const clone = area.cloneNode(true);
+      clone.classList.remove('edit-mode');
+      clone.querySelectorAll('.entry-check, .entry-sort-controls').forEach(el => el.remove());
+      clone.querySelectorAll('.editable-entry').forEach(el => el.classList.remove('editable-entry'));
+      clone.querySelectorAll('.entry-selected').forEach(el => el.classList.remove('entry-selected'));
+      clone.querySelectorAll('.search-mark').forEach(mark => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize();
+      });
+      return clone.innerHTML;
+    }
+
+    function saveToLocal() {
+      const content = getCleanEditableHTML();
+      localStorage.setItem('portuguese_composition_v2', content);
+    }
+
+    function saveCacheOnly() {
+      saveToLocal();
+      alert('当前所有修改已保存到浏览器缓存。');
+    }
+
+    function getCurrentHtmlFileName() {
+      const pathName = decodeURIComponent(window.location.pathname || '');
+      const lastPart = pathName.split('/').pop();
+      return lastPart && lastPart.includes('.html') ? lastPart : 'ptredacao.html';
+    }
+
+    function buildUpdatedHtmlContent() {
+      const cleanContent = getCleanEditableHTML();
+      localStorage.setItem('portuguese_composition_v2', cleanContent);
+
+      const clonedHtml = document.documentElement.cloneNode(true);
+      const cleanArea = clonedHtml.querySelector('#editable-area');
+      if (cleanArea) {
+        cleanArea.classList.remove('edit-mode');
+        cleanArea.innerHTML = cleanContent;
+      }
+
+      clonedHtml.querySelectorAll('#search-panel, #edit-panel, #add-modal, #annotate-toolbar').forEach(el => el.classList.remove('open'));
+      clonedHtml.querySelectorAll('#search-toggle, #edit-toggle').forEach(el => el.classList.remove('active'));
+
+      const editBtn = clonedHtml.querySelector('#edit-toggle');
+      if (editBtn) editBtn.textContent = '编辑';
+
+      const saveBtn = clonedHtml.querySelector('.btn-save');
+      if (saveBtn) saveBtn.textContent = '保存到当前HTML';
+
+      return '<!DOCTYPE html>\n' + clonedHtml.outerHTML;
+    }
+
+    function downloadHtmlFile(htmlContent, fileName) {
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fileName || getCurrentHtmlFileName();
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    async function saveData() {
+      const htmlContent = buildUpdatedHtmlContent();
+      const fileName = getCurrentHtmlFileName();
+
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+              description: 'HTML 文件',
+              accept: { 'text/html': ['.html', '.htm'] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(htmlContent);
+          await writable.close();
+          alert('已保存到HTML文件。下次打开这个文件，修改会直接保留在页面里。');
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+          console.warn('浏览器直接写入失败，改用下载方式：', err);
+        }
+      }
+
+      downloadHtmlFile(htmlContent, fileName);
+      alert('浏览器不支持直接覆盖文件，已下载更新版HTML。请用下载的文件替换原HTML。');
+    }
+
+    window.addEventListener('load', function() {
+      const savedData = localStorage.getItem('portuguese_composition_v2');
+      if (savedData) {
+        document.getElementById('editable-area').innerHTML = savedData;
+      }
+      ensureEntryIds();
+      syncActiveNavFromPage();
+    });
+
+    function clearData() {
+      if (confirm('确定要删除所有笔记、高亮和新增/删除的本地修改吗？')) {
+        localStorage.removeItem('portuguese_composition_v2');
+        location.reload();
+      }
+    }
+
+    function exportData() {
+      const htmlContent = buildUpdatedHtmlContent();
+      const date = new Date().toISOString().slice(0, 10);
+      downloadHtmlFile(htmlContent, '葡语学习笔记_' + date + '.html');
+    }
+
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, function(ch) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[ch];
+      });
+    }
+  </script>
+</body>
+</html>
