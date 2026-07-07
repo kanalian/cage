@@ -5,3 +5,5 @@
 3. 搜索+日常记录：[https://kanalian.github.io/cage/searchre.html](https://kanalian.github.io/cage/searchre.html)
 4. 正则统计规范：[https://kanalian.github.io/cage/regularurl.html](https://kanalian.github.io/cage/regularurl.html)
 5. 葡语作文参考：[https://kanalian.github.io/cage/ptredacao.html](https://kanalian.github.io/cage/ptredacao.html)
+6. 便签笔记卡片：[https://kanalian.github.io/cage/noteui.html](https://kanalian.github.io/cage/noteui.html)
+
