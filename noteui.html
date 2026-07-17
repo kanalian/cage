@@ -21558,11 +21558,22 @@ body {
         return Math.ceil(base / 20) * 20;
     }
 
-    function shouldShowTick(index, total) {
-        if (total <= 10) return true;
+    function shouldShowTick(index, total, plotWidth, compact) {
+        if (total <= 1) return true;
+
+        if (!compact) {
+            if (total <= 10) return true;
+            if (index === 0 || index === total - 1) return true;
+            if (total <= 30) return index % 5 === 0;
+            return index % 14 === 0;
+        }
+
+        const maxTicks = plotWidth < 300 ? 4 : plotWidth < 390 ? 5 : 6;
+        if (total <= maxTicks) return true;
         if (index === 0 || index === total - 1) return true;
-        if (total <= 30) return index % 5 === 0;
-        return index % 14 === 0;
+
+        const step = Math.ceil((total - 1) / Math.max(1, maxTicks - 1));
+        return index % step === 0;
     }
 
     function safeText(value) {
@@ -21581,17 +21592,24 @@ body {
         const svg = $('cardStudyChart');
         if (!svg) return;
 
-        const rect = svg.getBoundingClientRect();
-        const w = Math.max(520, Math.round(rect.width || 680));
-        const h = Math.max(300, Math.round(rect.height || 400));
+        const wrap = svg.closest('.card-chart-wrap');
+        const rect = (wrap || svg).getBoundingClientRect();
+        const compact = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+        const measuredWidth = Math.round(rect.width || svg.clientWidth || window.innerWidth - 32 || 0);
+        const measuredHeight = Math.round(rect.height || svg.clientHeight || 0);
+        const w = compact ? Math.max(260, measuredWidth) : Math.max(520, measuredWidth || 680);
+        const h = compact
+            ? Math.max(238, measuredHeight || Math.round(w * 0.74))
+            : Math.max(300, measuredHeight || 400);
 
         svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-        svg.setAttribute('preserveAspectRatio', 'none');
+        svg.setAttribute('preserveAspectRatio', compact ? 'xMidYMid meet' : 'none');
 
-        const left = 46;
-        const right = 24;
-        const top = 18;
-        const bottom = 40;
+        const left = compact ? 34 : 46;
+        const right = compact ? 10 : 24;
+        const top = compact ? 12 : 18;
+        const bottom = compact ? 34 : 40;
+        const axisFontSize = compact ? 10.5 : 12;
         const plotW = Math.max(10, w - left - right);
         const plotH = Math.max(10, h - top - bottom);
         const maxValue = rows.reduce(function (max, row) {
@@ -21614,17 +21632,17 @@ body {
             const value = Math.round(maxY / 5 * i);
             const yy = y(value);
 
-            html += '<text x="' + (left - 10) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="12" fill="#374151">' + value + '</text>';
+            html += '<text x="' + (left - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-size="' + axisFontSize + '" fill="#374151">' + value + '</text>';
             html += '<line x1="' + left + '" y1="' + yy + '" x2="' + (w - right) + '" y2="' + yy + '" stroke="#d5dbe4" stroke-width="1" stroke-dasharray="7 7"/>';
         }
 
         rows.forEach(function (row, index) {
-            if (!shouldShowTick(index, rows.length)) return;
+            if (!shouldShowTick(index, rows.length, plotW, compact)) return;
 
             const xx = x(index);
 
             html += '<line x1="' + xx + '" y1="' + top + '" x2="' + xx + '" y2="' + (top + plotH) + '" stroke="#d5dbe4" stroke-width="1" stroke-dasharray="7 7"/>';
-            html += '<text x="' + xx + '" y="' + (h - 10) + '" text-anchor="middle" font-size="12" fill="#374151">' + safeText(row.label) + '</text>';
+            html += '<text x="' + xx + '" y="' + (h - 10) + '" text-anchor="middle" font-size="' + axisFontSize + '" fill="#374151">' + safeText(row.label) + '</text>';
         });
 
         html += '<line x1="' + left + '" y1="' + top + '" x2="' + left + '" y2="' + (top + plotH) + '" stroke="#a9adb4" stroke-width="1"/>';
@@ -28598,7 +28616,7 @@ body {
         display: block !important;
         position: relative !important;
         align-self: stretch !important;
-        height: clamp(240px, 44vh, 340px) !important;
+        height: clamp(240px, calc((100vw - 32px) * .72), 300px) !important;
         overflow: hidden !important;
         margin: 0 !important;
     }
@@ -28622,7 +28640,7 @@ body {
 
 @media (max-width: 640px) {
     #cardSetDetailPage .card-chart-wrap {
-        height: clamp(238px, 42vh, 310px) !important;
+        height: clamp(238px, calc((100vw - 32px) * .74), 270px) !important;
     }
 }
 </style>
@@ -29168,6 +29186,53 @@ html body #simpleInputModal.rename-cardset-match #simpleInputConfirmBtn {
 
     html body #simpleInputModal.rename-cardset-match .simple-input-actions {
         padding: 13px 20px 17px !important;
+    }
+}
+</style>
+
+
+
+<style id="desktopBottomNavViewportFixStyle">
+/* Desktop: keep the primary interface switcher at the viewport bottom.
+   Only the center content areas scroll; mobile behavior remains unchanged. */
+@media (min-width: 641px) {
+    #mainPage,
+    #folderPage,
+    #folderDetailPage,
+    #cardPage {
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        max-height: 100vh !important;
+        max-height: 100dvh !important;
+        overflow: hidden !important;
+    }
+
+    #mainPage #notesList,
+    #folderPage .folder-list-main,
+    #folderDetailPage .folder-list-main,
+    #cardPage .card-list-main {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        box-sizing: border-box !important;
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    #mainPage > nav,
+    #folderPage .folder-bottom-nav,
+    #folderDetailPage .folder-bottom-nav,
+    #cardPage .card-bottom-nav {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        width: 100vw !important;
+        z-index: 8000 !important;
+        flex: 0 0 auto !important;
+        transform: none !important;
     }
 }
 </style>
