@@ -234,17 +234,24 @@
         found=true;
       }
       if(!found){
-        for(let i=3;i<lines.length;i++){
-          const m=markerMatchAtLineStart(lines[i]);
-          if(m){
-            const rest=lines[i].slice(m[0].length).trim();
-            if(rest)bodyLines.push(rest);
-            restLines=lines.slice(i+1);
-            found=true;
-            break;
-          }
-        }
-      }
+  for(let i=3;i<lines.length;i++){
+
+    // 一旦已经进入正文，就停止寻找第二个“文案/简介”
+    // 防止作者有话说里的“预收简介”被误认为开头重复简介
+    if(isChapterTitleLine(lines[i])){
+      break;
+    }
+
+    const m=markerMatchAtLineStart(lines[i]);
+    if(m){
+      const rest=lines[i].slice(m[0].length).trim();
+      if(rest)bodyLines.push(rest);
+      restLines=lines.slice(i+1);
+      found=true;
+      break;
+    }
+  }
+}
       if(!found)return content;
       while(restLines.length&&restLines[0].trim()==="")restLines.shift();
       const chapterIndex=restLines.findIndex(isChapterTitleLine);
