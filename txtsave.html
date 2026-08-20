@@ -186,7 +186,7 @@
     function getOptions(){return{intro:$("optIntro").checked,body:$("optBody").checked,joinBroken:$("optJoinBroken").checked,stats:$("optStats").checked}}
     async function readTextSmart(file){const buffer=await file.arrayBuffer();for(const encoding of ["utf-8","gb18030","gbk"]){try{return new TextDecoder(encoding,{fatal:true}).decode(buffer)}catch(error){}}return new TextDecoder("utf-8",{fatal:false}).decode(buffer)}
 
-    function processText(text,options){let content=normalizeNewlines(text);if(options.intro){content=cleanIntroStrict(content);content=dedupeIntroArea(content);content=cleanCrawlerRepeats(content)}if(options.body){content=removeExtraBlankLines(content);content=addBlankLinesBeforeChapters(content)}if(options.joinBroken){content=joinBrokenSentences(content)}if(options.intro){content=cleanCrawlerRepeats(content)}return content.trim()+"\n"}
+    function processText(text,options){let content=normalizeNewlines(text);if(options.intro){content=cleanIntroStrict(content);content=dedupeIntroArea(content);content=removeStandaloneSymbols(content);content=cleanCrawlerRepeats(content)}if(options.body){content=removeExtraBlankLines(content);content=addBlankLinesBeforeChapters(content)}if(options.joinBroken){content=joinBrokenSentences(content)}if(options.intro){content=cleanCrawlerRepeats(content)}return content.trim()+"\n"}
     function removeExtraBlankLines(content){return normalizeNewlines(content).replace(/\n\s*\n/g,"\n").replace(/\n{3,}/g,"\n\n")}
     function normalizeNewlines(text){return String(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n")}
     function isChapterTitleLine(line){
@@ -275,6 +275,22 @@
       if(after.length){while(rebuilt.length&&rebuilt[rebuilt.length-1].trim()==="")rebuilt.pop();rebuilt.push("","",...after)}
       return rebuilt.join("\n");
     }
+    
+    function removeStandaloneSymbols(content){
+  return normalizeNewlines(content)
+    .split("\n")
+    .filter(line=>{
+      const t=line.trim();
+
+      // 删除单独一行的特殊符号
+      if(/^['"“”‘’「」『』【】（）()<>《》…·•●]+$/.test(t)){
+        return false;
+      }
+
+      return true;
+    })
+    .join("\n");
+}
 
     function cleanCrawlerRepeats(content){
       let lines=removeCrawlerJunkLines(normalizeNewlines(content).split("\n"));
