@@ -206,7 +206,24 @@
       if(/^番外(?:篇)?(?:[ \t　]*(?:[0-9]+|[零〇一二两三四五六七八九十百千万]+|[A-Za-z]+|[ivxlcdm]+))?(?:[ \t　]*[:：、.-]?[ \t　]*.{0,80})?$/i.test(text))return true;
 
       // 数字加标题：1：标题、1 标题、12 - 标题。单独数字行不识别。
-      if(/^[1-9][0-9]{0,3}([ 	　]*[:：、.-][ 	　]*.+|[ 	　]+.+)$/.test(text))return true;
+      const numericChapter=text.match(
+  /^([1-9][0-9]{0,3})([ \t　]*[:：、.-][ \t　]*|[ \t　]+)(.+)$/
+);
+
+if(numericChapter){
+  const chapterText=numericChapter[3].trim();
+
+  // 数字后直接跟对话，属于正文，不视为章节
+  if(/^["“‘「『]/.test(chapterText))return false;
+
+  // 带有明显正文句子标点，不视为章节
+  if(/[，,；;！？!?。]/.test(chapterText))return false;
+
+  // 太长更像正文句子
+  if(chapterText.length>30)return false;
+
+  return true;
+}
 
       return false;
     }
