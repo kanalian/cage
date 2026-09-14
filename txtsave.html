@@ -186,18 +186,50 @@
     function getOptions(){return{intro:$("optIntro").checked,body:$("optBody").checked,joinBroken:$("optJoinBroken").checked,stats:$("optStats").checked}}
     async function readTextSmart(file){const buffer=await file.arrayBuffer();for(const encoding of ["utf-8","gb18030","gbk"]){try{return new TextDecoder(encoding,{fatal:true}).decode(buffer)}catch(error){}}return new TextDecoder("utf-8",{fatal:false}).decode(buffer)}
 
-    function processText(text,options){let content=normalizeNewlines(text);if(options.intro){content=cleanIntroStrict(content);content=dedupeIntroArea(content);content=removeStandaloneSymbols(content);content=cleanCrawlerRepeats(content)}if(options.body){content=removeExtraBlankLines(content);content=addBlankLinesBeforeChapters(content)}if(options.joinBroken){content=joinBrokenSentences(content)}if(options.intro){content=cleanCrawlerRepeats(content)}return content.trim()+"\n"}
-function removeStandaloneNullLines(content){
-  return normalizeNewlines(content)
-    .split("\n")
-    .filter(line=>{
-      const cleaned=String(line||"")
-        .replace(/[\u200B\u200C\u200D\uFEFF]/g,"")
-        .replace(/[\s\u3000\u00A0]/g,"");
+function processText(text,options){
+  let content=normalizeNewlines(text);
 
-      return cleaned.toLowerCase()!=="null";
-    })
-    .join("\n");
+  if(options.intro){
+    content=cleanIntroStrict(content);
+    content=dedupeIntroArea(content);
+    content=removeStandaloneSymbols(content);
+    content=cleanCrawlerRepeats(content);
+  }
+
+  if(options.body){
+
+    // 删除正文中单独占一行的 null
+    // 支持：
+    // null
+    // null + 尾部空格
+    // 普通空格 + null
+    // 全角空格 + null
+    // NBSP / 零宽字符 / BOM + null
+    // NULL / Null / nUlL
+    content=normalizeNewlines(content)
+      .split("\n")
+      .filter(line=>{
+        const cleaned=String(line||"")
+          .replace(/[ \t\u3000\u00A0\u200B\u200C\u200D\uFEFF]/g,"")
+          .toLowerCase();
+
+        return cleaned!=="null";
+      })
+      .join("\n");
+
+    content=removeExtraBlankLines(content);
+    content=addBlankLinesBeforeChapters(content);
+  }
+
+  if(options.joinBroken){
+    content=joinBrokenSentences(content);
+  }
+
+  if(options.intro){
+    content=cleanCrawlerRepeats(content);
+  }
+
+  return content.trim()+"\n";
 }
     function removeExtraBlankLines(content){return normalizeNewlines(content).replace(/\n\s*\n/g,"\n").replace(/\n{3,}/g,"\n\n")}
     function normalizeNewlines(text){return String(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n")}
