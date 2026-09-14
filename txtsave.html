@@ -558,24 +558,254 @@ if(numericChapter){
       return out.join("\n");
     }
 
-    function shouldJoinWithNext(line,next){
-      const current=String(line||"").trimEnd();
-      const nextText=String(next||"").trimStart();
-      if(!current||!nextText)return false;
-      if(isGuideOrMetaLine(current)||isGuideOrMetaLine(nextText))return false;
-      if(hasUnclosedPairs(current))return true;
-      if(/[，,、：:；;—\-～~]$/.test(current))return true;
-      if(/(……|…)$/.test(current))return true;
-      if(!/[。！？!?]$/.test(removeClosingMarks(current))&&!looksLikeNewParagraph(next))return true;
-      return false;
-    }
+// 判断下一行是不是明显开启了一段新对话。
+// 新对话优先保护，避免连续台词被拼成一大段。
+function startsLikeDialogue(text){
+  const t=String(text||"").trimStart();
 
-    function joinTwoLines(a,b){
-      const left=String(a||"").trimEnd();
-      const right=String(b||"").trimStart();
-      if(/[A-Za-z0-9]$/.test(left)&&/^[A-Za-z0-9]/.test(right))return left+" "+right;
-      return left+right;
-    }
+  return /^["“「『‘]/.test(t);
+}
+
+
+// 判断下一行是不是以明显属于上一句的续句标点开始。
+// 即使下一行带有段首缩进，这种情况也优先认为是断句。
+//
+// 注意：这里故意不包含：
+// ——
+// ……
+// ！
+// ？
+//
+// 因为这些符号在小说中完全可能作为新段落开头。
+function startsWithContinuationPunctuation(text){
+  const t=String(text||"").trimStart();
+
+  return /^[，,、；;：:。）》」』】”’]/.test(t);
+}
+
+
+// 判断中文正文中的英文/数字 token 是否被错误拆开。
+//
+// 例如：
+// 那些只会讲故事做p
+// 　　pt的嘴皮子诈骗大师
+//
+// 应恢复为：
+// 那些只会讲故事做ppt的嘴皮子诈骗大师
+function isBrokenInlineAsciiToken(left,right){
+  const a=String(left||"").trimEnd();
+  const b=String(right||"").trimStart();
+
+  return (
+    /[\u3400-\u9fff][A-Za-z0-9]+$/.test(a) &&
+    /^[A-Za-z0-9]+[\u3400-\u9fff]/.test(b)
+  );
+}
+
+
+// 判断高置信度的中文词组是否被拆开。
+//
+// 例如：
+// 猛然收缩一
+// 　　下。
+//
+// 看了一
+// 　　眼。
+//
+// 走了一
+// 　　步。
+//
+// 应分别恢复为：
+// 猛然收缩一下。
+// 看了一眼。
+// 走了一步。
+function isBrokenChinesePhrase(left,right){
+  const a=String(left||"").trimEnd();
+  const b=String(right||"").trimStart();
+
+  // “一 + 常见量词 / 补语”
+  if(
+    /一$/.test(a) &&
+    /^(?:下|点|些|会儿|会|声|眼|步|次|个|口|把|遍|阵|瞬|刻|番|圈|趟|回|场|轮|段|句|层|面|丝|缕)/.test(b)
+  ){
+    return true;
+  }
+
+  return false;
+}
+
+
+// 判断当前行是不是已经以比较明确的句末形式结束。
+// 把省略号也视为可能的完整句末，
+// 避免小说中的“……”被强制接到下一段。
+function endsLikeCompleteSentence(text){
+  const t=removeClosingMarks(String(text||"").trimEnd());
+
+  return /(?:……|…|[。！？!?])$/.test(t);
+}
+
+
+function shouldJoinWithNext(line,next){
+  const current=String(line||"").trimEnd();
+  const nextText=String(next||"").trimStart();
+
+  if(!current||!nextText){
+    return false;
+  }
+
+
+  // 1. 作者、标签、阅读指南等元信息继续保护。
+  if(
+    isGuideOrMetaLine(current) ||
+    isGuideOrMetaLine(nextText)
+  ){
+    return false;
+  }
+
+
+  // 2. 下一行明显开启了新的对话。
+  //
+  // “你去哪？”
+  // 　　“与你无关。”
+  //
+  // 必须保持两段。
+  //
+  // 这一判断优先于后面的“未闭合引号”，
+  // 以降低连续对话被粘成一大段的风险。
+  if(startsLikeDialogue(next)){
+    return false;
+  }
+
+
+  // 3. 当前行存在未闭合的引号、括号、书名号等。
+  //
+  // 例如：
+  //
+  // 　“作为门
+  // 票的回礼，送我个毕业礼物当纪念品，不过分吧？”
+  //
+  // 应续接。
+  if(hasUnclosedPairs(current)){
+    return true;
+  }
+
+
+  // 4. 下一行以明显属于上一句的标点开始。
+  //
+  // 例如：
+  //
+  // 凭空出现，伙同你的姘头一起抢别人的猎物
+  // 　　，开心吗？”
+  //
+  // 即使下一行存在段首缩进，也应该续接。
+  //
+  // 但上一行如果已经完整结束，则不强制拼接。
+  if(
+    !endsLikeCompleteSentence(current) &&
+    startsWithContinuationPunctuation(nextText)
+  ){
+    return true;
+  }
+
+
+  // 5. 中文正文中的英文/数字 token 被拆开。
+  //
+  // 做p
+  // 　　pt的
+  //
+  // → 做ppt的
+  if(isBrokenInlineAsciiToken(current,nextText)){
+    return true;
+  }
+
+
+  // 6. 高置信度中文词组被拆开。
+  //
+  // 收缩一
+  // 　　下。
+  //
+  // → 收缩一下。
+  if(isBrokenChinesePhrase(current,nextText)){
+    return true;
+  }
+
+
+  // 7. 当前行本身以明显未结束标点结尾。
+  //
+  // 例如：
+  //
+  // 他忽然说道，
+  // 下一行……
+  //
+  // 注意：
+  // 不再把 ——、-、…… 作为无条件续接依据，
+  // 降低小说文本误拼风险。
+  if(/[，,、：:；;～~]$/.test(current)){
+    return true;
+  }
+
+
+  // 8. 普通错误断行。
+  //
+  // 只有：
+  // 当前行没有完整结束
+  // +
+  // 下一行不像真正的新段
+  //
+  // 才进行拼接。
+  if(
+    !endsLikeCompleteSentence(current) &&
+    !looksLikeNewParagraph(next)
+  ){
+    return true;
+  }
+
+
+  return false;
+}
+
+
+function joinTwoLines(a,b){
+  const left=String(a||"").trimEnd();
+  const right=String(b||"").trimStart();
+
+
+  // 中文正文中的英文/数字 token 被拆开时，
+  // 两边直接连接，不能加入空格。
+  //
+  // 做p + pt的
+  // → 做ppt的
+  if(isBrokenInlineAsciiToken(left,right)){
+    return left+right;
+  }
+
+
+  // 中文高置信度词组被拆开时，也直接连接。
+  //
+  // 一 + 下
+  // → 一下
+  if(isBrokenChinesePhrase(left,right)){
+    return left+right;
+  }
+
+
+  // 普通英文跨行仍然补一个空格。
+  //
+  // This is a
+  // good example.
+  //
+  // → This is a good example.
+  if(
+    /[A-Za-z0-9]$/.test(left) &&
+    /^[A-Za-z0-9]/.test(right)
+  ){
+    return left+" "+right;
+  }
+
+
+  // 中文及其他情况直接连接。
+  return left+right;
+}
 
     function removeClosingMarks(text){return String(text||"").replace(/[”’」』）)】》]+$/g,"")}
 
