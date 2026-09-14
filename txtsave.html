@@ -197,26 +197,7 @@ function processText(text,options){
   }
 
   if(options.body){
-
-    // 删除正文中单独占一行的 null
-    // 支持：
-    // null
-    // null + 尾部空格
-    // 普通空格 + null
-    // 全角空格 + null
-    // NBSP / 零宽字符 / BOM + null
-    // NULL / Null / nUlL
-    content=normalizeNewlines(content)
-      .split("\n")
-      .filter(line=>{
-        const cleaned=String(line||"")
-          .replace(/[ \t\u3000\u00A0\u200B\u200C\u200D\uFEFF]/g,"")
-          .toLowerCase();
-
-        return cleaned!=="null";
-      })
-      .join("\n");
-
+    content=removeStandaloneNullLines(content);
     content=removeExtraBlankLines(content);
     content=addBlankLinesBeforeChapters(content);
   }
@@ -231,8 +212,28 @@ function processText(text,options){
 
   return content.trim()+"\n";
 }
+    function isStandaloneNullLine(line){
+  const cleaned=String(line||"")
+    .normalize("NFKC")
+    .replace(/[\p{Z}\p{Cf}\p{Cc}]/gu,"")
+    .toLowerCase();
+
+  return cleaned==="null";
+}
+
+function removeStandaloneNullLines(content){
+  return normalizeNewlines(content)
+    .split("\n")
+    .filter(line=>!isStandaloneNullLine(line))
+    .join("\n");
+}
     function removeExtraBlankLines(content){return normalizeNewlines(content).replace(/\n\s*\n/g,"\n").replace(/\n{3,}/g,"\n\n")}
-    function normalizeNewlines(text){return String(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n")}
+   function normalizeNewlines(text){
+  return String(text)
+    .replace(/\r\n/g,"\n")
+    .replace(/\r/g,"\n")
+    .replace(/[\u0085\u2028\u2029]/g,"\n");
+}
     function isChapterTitleLine(line){
       const text=String(line||"").trim();
       if(!text)return false;
